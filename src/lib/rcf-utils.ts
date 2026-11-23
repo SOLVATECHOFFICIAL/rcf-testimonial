@@ -292,6 +292,46 @@ export function generateSafeId(prefix = 'rcf'): string {
   return `${cleanPrefix}_${Date.now()}_${hex}`;
 }
 
+export const JOINED_MONTHS: string[] = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+export const TESTIMONY_CONTEXTS: string[] = [
+  'Thanksgiving',
+  'Answered Prayer',
+  'Healing',
+  'Financial Provision',
+  'Academic Breakthrough',
+  'Journey Mercies',
+  'Deliverance',
+  'Salvation & Peace',
+];
+
+/**
+ * Returns a 20-year window of selectable years up to endYear (inclusive).
+ * Default window includes 2018 upward alongside prior years for 20-year tap preview.
+ */
+export function getYearTapGrid(endYear: number, count = 20): number[] {
+  const clampedEnd = Math.min(2100, Math.max(1980 + count - 1, endYear));
+  const start = Math.max(1980, clampedEnd - count + 1);
+  const years: number[] = [];
+  for (let y = start; y <= clampedEnd; y++) {
+    years.push(y);
+  }
+  return years;
+}
+
 export interface ValidationResult<T extends Record<string, string>> {
   valid: boolean;
   errors: Partial<T>;
@@ -299,10 +339,14 @@ export interface ValidationResult<T extends Record<string, string>> {
 
 export function validateRegistrationInput(
   input: RegistrationInput,
+  options?: { allowOptionalContact?: boolean },
 ): ValidationResult<{
   fullName: string;
   category: string;
   yearJoined: string;
+  monthJoined: string;
+  dateJoined: string;
+  timeJoined: string;
   email: string;
   phone: string;
   department: string;
@@ -314,6 +358,8 @@ export function validateRegistrationInput(
   executiveSession: string;
 }> {
   const errors: Record<string, string> = {};
+  const allowOptional = Boolean(options?.allowOptionalContact);
+
   const fullName = input.fullName.trim();
   if (fullName.length < 2) {
     errors.fullName = 'Please enter your full name (at least 2 characters).';
@@ -331,28 +377,53 @@ export function validateRegistrationInput(
     input.yearJoined < 1980 ||
     input.yearJoined > currentYear + 1
   ) {
-    errors.yearJoined = `Please enter a valid year joined between 1980 and ${currentYear + 1}.`;
+    errors.yearJoined = `Please tap a valid year joined between 1980 and ${currentYear + 1}.`;
+  }
+
+  if ((input.monthJoined?.trim().length ?? 0) > 20) {
+    errors.monthJoined = 'Month must be 20 characters or fewer.';
+  }
+  if ((input.dateJoined?.trim().length ?? 0) > 20) {
+    errors.dateJoined = 'Date must be 20 characters or fewer.';
+  }
+  if ((input.timeJoined?.trim().length ?? 0) > 20) {
+    errors.timeJoined = 'Time must be 20 characters or fewer.';
   }
 
   const email = input.email?.trim() ?? '';
-  if (email.length > 0) {
+  if (!allowOptional && email.length === 0) {
+    errors.email = 'Email address is required.';
+  } else if (email.length > 0) {
     if (email.length > 160 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Please enter a valid email address or leave it blank.';
+      errors.email = 'Please enter a valid email address.';
     }
   }
 
   const phone = input.phone?.trim() ?? '';
-  if (phone.length > 32) {
+  if (!allowOptional && phone.length < 7) {
+    errors.phone = 'Please enter a valid phone number (at least 7 digits).';
+  } else if (phone.length > 32) {
     errors.phone = 'Phone number must be 32 characters or fewer.';
   }
 
-  if ((input.department?.trim().length ?? 0) > 120) {
+  const department = input.department?.trim() ?? '';
+  if (!allowOptional && department.length < 2) {
+    errors.department = 'Please enter your academic department.';
+  } else if (department.length > 120) {
     errors.department = 'Department must be 120 characters or fewer.';
   }
-  if ((input.faculty?.trim().length ?? 0) > 120) {
+
+  const faculty = input.faculty?.trim() ?? '';
+  if (!allowOptional && faculty.length < 2) {
+    errors.faculty = 'Please enter your faculty or college.';
+  } else if (faculty.length > 120) {
     errors.faculty = 'Faculty must be 120 characters or fewer.';
   }
-  if ((input.level?.trim().length ?? 0) > 32) {
+
+  const level = input.level?.trim() ?? '';
+  if (!allowOptional && level.length < 2) {
+    errors.level = 'Please select your academic level.';
+  } else if (level.length > 32) {
     errors.level = 'Level must be 32 characters or fewer.';
   }
 
@@ -362,9 +433,6 @@ export function validateRegistrationInput(
       errors.unit = 'Please select your fellowship unit.';
     } else if (unit.length > 80) {
       errors.unit = 'Unit name must be 80 characters or fewer.';
-    }
-    if ((input.workerRole?.trim().length ?? 0) > 120) {
-      errors.workerRole = 'Role/responsibility must be 120 characters or fewer.';
     }
   }
 
@@ -377,12 +445,9 @@ export function validateRegistrationInput(
       errors.executivePortfolio = 'Executive portfolio must be 80 characters or fewer.';
     }
     if (session.length < 2) {
-      errors.executiveSession = 'Please enter your executive session or tenure (e.g., 2025/2026).';
+      errors.executiveSession = 'Please choose or enter your executive session.';
     } else if (session.length > 40) {
       errors.executiveSession = 'Executive session must be 40 characters or fewer.';
-    }
-    if ((input.unit?.trim().length ?? 0) > 80) {
-      errors.unit = 'Unit name must be 80 characters or fewer.';
     }
   }
 
@@ -396,19 +461,28 @@ export function validateTestimonyInput(
   input: TestimonyInput,
 ): ValidationResult<{
   authorName: string;
+  testimonyContext: string;
   testimonyTitle: string;
   testimonyText: string;
+  photoDataUrl: string;
   backgroundColor: string;
 }> {
   const errors: Record<string, string> = {};
   const authorName = input.authorName.trim();
+  const testimonyContext = input.testimonyContext.trim();
   const testimonyText = input.testimonyText.trim();
   const title = input.testimonyTitle?.trim() ?? '';
 
   if (authorName.length < 2) {
-    errors.authorName = 'Please enter your name so leadership knows who shared this testimony.';
+    errors.authorName = 'Missing member name. Please complete registration first.';
   } else if (authorName.length > 120) {
     errors.authorName = 'Name must be 120 characters or fewer.';
+  }
+
+  if (testimonyContext.length < 2) {
+    errors.testimonyContext = 'Please select the type or context of your testimony.';
+  } else if (testimonyContext.length > 60) {
+    errors.testimonyContext = 'Testimony context must be 60 characters or fewer.';
   }
 
   if (title.length > 140) {
@@ -419,6 +493,15 @@ export function validateTestimonyInput(
     errors.testimonyText = 'Please write your testimony (at least 5 characters).';
   } else if (testimonyText.length > 3000) {
     errors.testimonyText = 'Testimony must be 3,000 characters or fewer.';
+  }
+
+  if (input.photoDataUrl) {
+    if (
+      input.photoDataUrl.length > 100000 ||
+      !/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(input.photoDataUrl)
+    ) {
+      errors.photoDataUrl = 'Please upload a valid lightweight image (WebP, JPEG, or PNG).';
+    }
   }
 
   if (!/^#[0-9a-fA-F]{6}$/.test(input.backgroundColor)) {

@@ -17,7 +17,7 @@ export function RcfLogo({ size = 'md', className = '' }: RcfLogoProps) {
   if (imgFailed) {
     return (
       <div
-        className={`inline-flex items-center justify-center bg-[#0B2545] text-white font-display font-bold tracking-tight ${sizeClasses} ${className}`}
+        className={`inline-flex w-fit items-center justify-center bg-[#0B2545] text-white font-display font-bold tracking-tight ${sizeClasses} ${className}`}
         aria-label="Redeemed Christian Fellowship Logo"
       >
         RCF
@@ -27,7 +27,7 @@ export function RcfLogo({ size = 'md', className = '' }: RcfLogoProps) {
 
   return (
     <div
-      className={`inline-flex items-center justify-center bg-black overflow-hidden shrink-0 ${sizeClasses} ${className}`}
+      className={`inline-flex w-fit items-center justify-center bg-black overflow-hidden shrink-0 ${sizeClasses} ${className}`}
     >
       <img
         src="/rcf.webp"

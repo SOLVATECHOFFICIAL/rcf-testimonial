@@ -6,6 +6,7 @@ import {
   formatSundayListPlainText,
   generateMemberId,
   getContrastTextColor,
+  getYearTapGrid,
   isValidHttpUrl,
   TESTIMONY_COLOR_PRESETS,
   validateRegistrationInput,
@@ -19,6 +20,14 @@ test('generateMemberId produces valid RCF-YYYY-XXXXXX format without collisions'
   assert.match(id1, /^RCF-2026-[A-Z0-9]{6}$/);
   assert.match(id2, /^RCF-2026-[A-Z0-9]{6}$/);
   assert.notEqual(id1, id2);
+});
+
+test('getYearTapGrid returns 20 tappable years covering 2018 upward', () => {
+  const grid = getYearTapGrid(2026, 20);
+  assert.equal(grid.length, 20);
+  assert.equal(grid[0], 2007);
+  assert.equal(grid[grid.length - 1], 2026);
+  assert.ok(grid.includes(2018));
 });
 
 test('getContrastTextColor enforces readable foregrounds across all presets', () => {
@@ -35,20 +44,34 @@ test('getContrastTextColor enforces readable foregrounds across all presets', ()
   }
 });
 
-test('validateRegistrationInput validates Member, Worker, and Executive conditional fields', () => {
+test('validateRegistrationInput requires all front details while month/date/time are optional', () => {
   const emptyRes = validateRegistrationInput({
     fullName: '',
     category: 'Member',
     yearJoined: 2026,
+    email: '',
+    phone: '',
+    department: '',
+    faculty: '',
+    level: '',
   });
   assert.equal(emptyRes.valid, false);
   assert.ok(emptyRes.errors.fullName);
+  assert.ok(emptyRes.errors.email);
+  assert.ok(emptyRes.errors.phone);
+  assert.ok(emptyRes.errors.department);
+  assert.ok(emptyRes.errors.faculty);
+  assert.ok(emptyRes.errors.level);
 
   const memberValid = validateRegistrationInput({
     fullName: 'Adeola Johnson',
     category: 'Member',
     yearJoined: 2025,
     email: 'adeola@gmail.com',
+    phone: '08012345678',
+    department: 'Computer Science',
+    faculty: 'Science',
+    level: '300L',
   });
   assert.equal(memberValid.valid, true);
 
@@ -56,6 +79,11 @@ test('validateRegistrationInput validates Member, Worker, and Executive conditio
     fullName: 'Chidi Okafor',
     category: 'Worker',
     yearJoined: 2024,
+    email: 'chidi@gmail.com',
+    phone: '08012345678',
+    department: 'Economics',
+    faculty: 'Social Sciences',
+    level: '200L',
   });
   assert.equal(workerMissingUnit.valid, false);
   assert.ok(workerMissingUnit.errors.unit);
@@ -64,8 +92,15 @@ test('validateRegistrationInput validates Member, Worker, and Executive conditio
     fullName: 'Chidi Okafor',
     category: 'Worker',
     yearJoined: 2024,
+    monthJoined: 'March',
+    dateJoined: '12',
+    timeJoined: '10:00',
+    email: 'chidi@gmail.com',
+    phone: '08012345678',
+    department: 'Economics',
+    faculty: 'Social Sciences',
+    level: '200L',
     unit: 'Media',
-    workerRole: 'Livestream Lead',
   });
   assert.equal(workerValid.valid, true);
 
@@ -73,6 +108,11 @@ test('validateRegistrationInput validates Member, Worker, and Executive conditio
     fullName: 'Tolu Adebayo',
     category: 'Executive',
     yearJoined: 2023,
+    email: 'tolu@gmail.com',
+    phone: '08012345678',
+    department: 'Law',
+    faculty: 'Law',
+    level: '400L',
   });
   assert.equal(execMissingFields.valid, false);
   assert.ok(execMissingFields.errors.executivePortfolio);
@@ -82,29 +122,40 @@ test('validateRegistrationInput validates Member, Worker, and Executive conditio
     fullName: 'Tolu Adebayo',
     category: 'Executive',
     yearJoined: 2023,
+    email: 'tolu@gmail.com',
+    phone: '08012345678',
+    department: 'Law',
+    faculty: 'Law',
+    level: '400L',
     executivePortfolio: 'General Secretary',
     executiveSession: '2025/2026',
   });
   assert.equal(execValid.valid, true);
 });
 
-test('validateTestimonyInput enforces author, length, and hex color', () => {
+test('validateTestimonyInput enforces context, author, length, hex color, and photo format', () => {
   const invalid = validateTestimonyInput({
     authorName: 'A',
+    testimonyContext: '',
     testimonyText: 'Hi',
     backgroundColor: 'red',
     textColor: '#FFFFFF',
     consentToSundaySharing: false,
+    photoDataUrl: 'javascript:alert(1)',
   });
   assert.equal(invalid.valid, false);
   assert.ok(invalid.errors.authorName);
+  assert.ok(invalid.errors.testimonyContext);
   assert.ok(invalid.errors.testimonyText);
   assert.ok(invalid.errors.backgroundColor);
+  assert.ok(invalid.errors.photoDataUrl);
 
   const valid = validateTestimonyInput({
     authorName: 'Grace Balogun',
+    testimonyContext: 'Healing',
     testimonyTitle: 'Academic Breakthrough',
     testimonyText: 'God saw me through my final examinations with peace and distinction.',
+    photoDataUrl: 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4',
     backgroundColor: '#0B2545',
     textColor: '#FFFFFF',
     consentToSundaySharing: true,

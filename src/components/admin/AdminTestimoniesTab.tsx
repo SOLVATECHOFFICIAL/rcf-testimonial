@@ -262,13 +262,22 @@ export function AdminTestimoniesTab({
                     className="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4"
                   >
                     <div className="flex items-start justify-between gap-3 text-xs">
-                      <div>
-                        <p className="font-display font-bold text-base">{item.authorName}</p>
-                        <p style={{ color: preset.mutedTextColor }} className="mt-0.5">
-                          {[item.membershipCategory, item.unit, item.authorMemberId]
-                            .filter(Boolean)
-                            .join(' · ') || 'Fellowship Member'}
-                        </p>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {item.photoDataUrl && (
+                          <img
+                            src={item.photoDataUrl}
+                            alt={`${item.authorName} testimony photo`}
+                            className="w-11 h-11 rounded-full object-cover border border-white/30 shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-display font-bold text-base truncate">{item.authorName}</p>
+                          <p style={{ color: preset.mutedTextColor }} className="mt-0.5 truncate">
+                            {[item.membershipCategory, item.unit, item.authorMemberId]
+                              .filter(Boolean)
+                              .join(' · ') || 'Fellowship Member'}
+                          </p>
+                        </div>
                       </div>
                       <span
                         style={{ color: preset.mutedTextColor }}
@@ -279,9 +288,9 @@ export function AdminTestimoniesTab({
                     </div>
 
                     <div>
-                      {item.testimonyTitle && (
+                      {(item.testimonyContext || item.testimonyTitle) && (
                         <h3 className="font-display font-bold text-lg mb-2">
-                          {item.testimonyTitle}
+                          {item.testimonyContext || item.testimonyTitle}
                         </h3>
                       )}
                       <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">

@@ -27,35 +27,55 @@
           "type": "integer",
           "description": "Year the member joined RCF."
         },
+        "monthJoined": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Optional month the member joined RCF."
+        },
+        "dateJoined": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Optional day/date the member joined RCF."
+        },
+        "timeJoined": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Optional time joined RCF."
+        },
         "email": {
           "type": "string",
+          "minLength": 5,
           "maxLength": 160,
-          "description": "Optional Gmail or email address."
+          "description": "Member Gmail or email address."
         },
         "phone": {
           "type": "string",
+          "minLength": 7,
           "maxLength": 32,
-          "description": "Optional phone number."
+          "description": "Member phone number."
         },
         "department": {
           "type": "string",
+          "minLength": 2,
           "maxLength": 120,
-          "description": "Optional academic department."
+          "description": "Academic department."
         },
         "faculty": {
           "type": "string",
+          "minLength": 2,
           "maxLength": 120,
-          "description": "Optional faculty or school."
+          "description": "Academic faculty or school."
         },
         "level": {
           "type": "string",
+          "minLength": 2,
           "maxLength": 32,
-          "description": "Optional academic level."
+          "description": "Academic level."
         },
         "unit": {
           "type": "string",
           "maxLength": 80,
-          "description": "Fellowship unit (required for Workers, optional for Executives)."
+          "description": "Fellowship unit (required for Workers)."
         },
         "workerRole": {
           "type": "string",
@@ -90,7 +110,7 @@
           "description": "Server timestamp of last update."
         }
       },
-      "required": ["memberId", "fullName", "category", "yearJoined", "submissionNonce", "createdAt", "updatedAt"]
+      "required": ["memberId", "fullName", "category", "yearJoined", "email", "phone", "department", "faculty", "level", "submissionNonce", "createdAt", "updatedAt"]
     },
     "Testimony": {
       "title": "Testimony",
@@ -118,6 +138,12 @@
           "maxLength": 80,
           "description": "Optional fellowship unit or portfolio."
         },
+        "testimonyContext": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Selected context/category of the testimony (e.g., Thanksgiving, Answered Prayer, Healing)."
+        },
         "testimonyTitle": {
           "type": "string",
           "maxLength": 140,
@@ -128,6 +154,11 @@
           "minLength": 5,
           "maxLength": 3000,
           "description": "Testimony body text."
+        },
+        "photoDataUrl": {
+          "type": "string",
+          "maxLength": 100000,
+          "description": "Optional compressed WebP/JPEG data URL picture attached to the testimony card."
         },
         "backgroundColor": {
           "type": "string",
@@ -170,7 +201,7 @@
           "description": "Server timestamp of last admin presentation update."
         }
       },
-      "required": ["authorName", "testimonyText", "backgroundColor", "textColor", "consentToSundaySharing", "submissionNonce", "createdAt"]
+      "required": ["authorName", "testimonyContext", "testimonyText", "backgroundColor", "textColor", "consentToSundaySharing", "submissionNonce", "createdAt"]
     },
     "AdminUser": {
       "title": "AdminUser",

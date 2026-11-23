@@ -50,6 +50,7 @@ test('Dirty Dozen client guard rejects malformed member IDs and oversized testim
   const longText = 'A'.repeat(3005);
   const res = validateTestimonyInput({
     authorName: 'Test User',
+    testimonyContext: 'Thanksgiving',
     testimonyText: longText,
     backgroundColor: '#0B2545',
     textColor: '#FFFFFF',
@@ -61,6 +62,11 @@ test('Dirty Dozen client guard rejects malformed member IDs and oversized testim
     fullName: 'Test Exec',
     category: 'Executive',
     yearJoined: 2026,
+    email: 'exec@gmail.com',
+    phone: '08012345678',
+    department: 'Law',
+    faculty: 'Law',
+    level: '400L',
   });
   assert.equal(execNoPortfolio.valid, false);
 });

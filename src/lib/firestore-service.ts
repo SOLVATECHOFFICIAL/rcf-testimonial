@@ -55,6 +55,14 @@ function stripEmptyStrings<T extends Record<string, unknown>>(obj: T): Record<st
   return result;
 }
 
+function isPermissionDeniedError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const code = (err as { code?: unknown }).code;
+  if (code === 'permission-denied') return true;
+  const message = err instanceof Error ? err.message : String(err);
+  return /permission[_ -]?denied|missing or insufficient permissions/i.test(message);
+}
+
 // --- Public Reads ---
 
 export async function fetchPublicSettings(): Promise<FellowshipSettings> {
@@ -163,13 +171,16 @@ export async function registerMember(
     fullName: input.fullName.trim(),
     category: input.category,
     yearJoined: Number(input.yearJoined),
+    monthJoined: input.monthJoined,
+    dateJoined: input.dateJoined,
+    timeJoined: input.timeJoined,
     email: input.email,
     phone: input.phone,
     department: input.department,
     faculty: input.faculty,
     level: input.level,
-    unit: input.category === 'Member' ? undefined : input.unit,
-    workerRole: input.category === 'Worker' ? input.workerRole : undefined,
+    unit: input.category === 'Worker' ? input.unit : undefined,
+    workerRole: undefined,
     executivePortfolio: input.category === 'Executive' ? input.executivePortfolio : undefined,
     executiveSession: input.category === 'Executive' ? input.executiveSession : undefined,
     submissionNonce,
@@ -178,11 +189,36 @@ export async function registerMember(
   const cleaned = stripEmptyStrings(rawPayload);
 
   try {
-    await setDoc(doc(db, 'members', memberId), {
-      ...cleaned,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      await setDoc(doc(db, 'members', memberId), {
+        ...cleaned,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (firstErr) {
+      if (!isPermissionDeniedError(firstErr)) throw firstErr;
+      // Compatibility fallback if the Firebase project still has pre-update firestore.rules deployed
+      const legacyPayload = stripEmptyStrings({
+        memberId,
+        fullName: input.fullName.trim(),
+        category: input.category,
+        yearJoined: Number(input.yearJoined),
+        email: input.email,
+        phone: input.phone,
+        department: input.department,
+        faculty: input.faculty,
+        level: input.level,
+        unit: input.category === 'Worker' ? input.unit : undefined,
+        executivePortfolio: input.category === 'Executive' ? input.executivePortfolio : undefined,
+        executiveSession: input.category === 'Executive' ? input.executiveSession : undefined,
+        submissionNonce,
+      });
+      await setDoc(doc(db, 'members', memberId), {
+        ...legacyPayload,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
 
     return {
       id: memberId,
@@ -190,13 +226,15 @@ export async function registerMember(
       fullName: input.fullName.trim(),
       category: input.category,
       yearJoined: Number(input.yearJoined),
-      email: input.email?.trim() || undefined,
-      phone: input.phone?.trim() || undefined,
-      department: input.department?.trim() || undefined,
-      faculty: input.faculty?.trim() || undefined,
-      level: input.level?.trim() || undefined,
-      unit: input.category !== 'Member' ? input.unit?.trim() || undefined : undefined,
-      workerRole: input.category === 'Worker' ? input.workerRole?.trim() || undefined : undefined,
+      monthJoined: input.monthJoined?.trim() || undefined,
+      dateJoined: input.dateJoined?.trim() || undefined,
+      timeJoined: input.timeJoined?.trim() || undefined,
+      email: input.email.trim(),
+      phone: input.phone.trim(),
+      department: input.department.trim(),
+      faculty: input.faculty.trim(),
+      level: input.level.trim(),
+      unit: input.category === 'Worker' ? input.unit?.trim() || undefined : undefined,
       executivePortfolio:
         input.category === 'Executive' ? input.executivePortfolio?.trim() || undefined : undefined,
       executiveSession:
@@ -228,19 +266,42 @@ export async function submitTestimony(
     authorName: input.authorName,
     membershipCategory: input.membershipCategory,
     unit: input.unit,
+    testimonyContext: input.testimonyContext,
     testimonyTitle: input.testimonyTitle,
     testimonyText: input.testimonyText,
+    photoDataUrl: input.photoDataUrl,
     backgroundColor: input.backgroundColor,
     textColor: input.textColor,
     submissionNonce,
   });
 
   try {
-    await setDoc(doc(db, 'testimonies', testimonyId), {
-      ...cleaned,
-      consentToSundaySharing: Boolean(input.consentToSundaySharing),
-      createdAt: serverTimestamp(),
-    });
+    try {
+      await setDoc(doc(db, 'testimonies', testimonyId), {
+        ...cleaned,
+        consentToSundaySharing: Boolean(input.consentToSundaySharing),
+        createdAt: serverTimestamp(),
+      });
+    } catch (firstErr) {
+      if (!isPermissionDeniedError(firstErr)) throw firstErr;
+      // Compatibility fallback if the Firebase project still has pre-update firestore.rules deployed
+      const legacyPayload = stripEmptyStrings({
+        authorMemberId: input.authorMemberId,
+        authorName: input.authorName,
+        membershipCategory: input.membershipCategory,
+        unit: input.unit,
+        testimonyTitle: input.testimonyTitle || input.testimonyContext,
+        testimonyText: input.testimonyText,
+        backgroundColor: input.backgroundColor,
+        textColor: input.textColor,
+        submissionNonce,
+      });
+      await setDoc(doc(db, 'testimonies', testimonyId), {
+        ...legacyPayload,
+        consentToSundaySharing: Boolean(input.consentToSundaySharing),
+        createdAt: serverTimestamp(),
+      });
+    }
     return testimonyId;
   } catch (err) {
     handleFirestoreError(err, OperationType.CREATE, path);
@@ -311,6 +372,9 @@ export async function fetchAllMembers(maxResults = 300): Promise<Member[]> {
         fullName: String(data.fullName ?? ''),
         category: (data.category as Member['category']) || 'Member',
         yearJoined: Number(data.yearJoined ?? new Date().getFullYear()),
+        monthJoined: typeof data.monthJoined === 'string' ? data.monthJoined : undefined,
+        dateJoined: typeof data.dateJoined === 'string' ? data.dateJoined : undefined,
+        timeJoined: typeof data.timeJoined === 'string' ? data.timeJoined : undefined,
         email: typeof data.email === 'string' ? data.email : undefined,
         phone: typeof data.phone === 'string' ? data.phone : undefined,
         department: typeof data.department === 'string' ? data.department : undefined,
@@ -337,7 +401,7 @@ export async function updateMemberRecord(
   input: RegistrationInput,
   existingMember: Member,
 ): Promise<void> {
-  const check = validateRegistrationInput(input);
+  const check = validateRegistrationInput(input, { allowOptionalContact: true });
   if (!check.valid) {
     const firstError = Object.values(check.errors)[0] || 'Invalid member fields.';
     throw new Error(firstError);
@@ -348,6 +412,9 @@ export async function updateMemberRecord(
     fullName: input.fullName,
     category: input.category,
     yearJoined: Number(input.yearJoined),
+    monthJoined: input.monthJoined,
+    dateJoined: input.dateJoined,
+    timeJoined: input.timeJoined,
     email: input.email,
     phone: input.phone,
     department: input.department,
@@ -361,11 +428,36 @@ export async function updateMemberRecord(
   });
 
   try {
-    await setDoc(doc(db, 'members', memberId), {
-      ...fullPayload,
-      createdAt: existingMember.createdAt ?? serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      await setDoc(doc(db, 'members', memberId), {
+        ...fullPayload,
+        createdAt: existingMember.createdAt ?? serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (firstErr) {
+      if (!isPermissionDeniedError(firstErr)) throw firstErr;
+      const legacyPayload = stripEmptyStrings({
+        memberId: existingMember.memberId,
+        fullName: input.fullName,
+        category: input.category,
+        yearJoined: Number(input.yearJoined),
+        email: input.email,
+        phone: input.phone,
+        department: input.department,
+        faculty: input.faculty,
+        level: input.level,
+        unit: input.category === 'Member' ? undefined : input.unit,
+        workerRole: input.category === 'Worker' ? input.workerRole : undefined,
+        executivePortfolio: input.category === 'Executive' ? input.executivePortfolio : undefined,
+        executiveSession: input.category === 'Executive' ? input.executiveSession : undefined,
+        submissionNonce: existingMember.submissionNonce || 'admin_edited',
+      });
+      await setDoc(doc(db, 'members', memberId), {
+        ...legacyPayload,
+        createdAt: existingMember.createdAt ?? serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
   } catch (err) {
     handleFirestoreError(err, OperationType.UPDATE, path);
   }
@@ -394,8 +486,11 @@ export async function fetchAllTestimonies(maxResults = 300): Promise<Testimony[]
         membershipCategory:
           typeof data.membershipCategory === 'string' ? data.membershipCategory : undefined,
         unit: typeof data.unit === 'string' ? data.unit : undefined,
+        testimonyContext:
+          typeof data.testimonyContext === 'string' ? data.testimonyContext : undefined,
         testimonyTitle: typeof data.testimonyTitle === 'string' ? data.testimonyTitle : undefined,
         testimonyText: String(data.testimonyText ?? ''),
+        photoDataUrl: typeof data.photoDataUrl === 'string' ? data.photoDataUrl : undefined,
         backgroundColor: String(data.backgroundColor ?? '#0B2545'),
         textColor: String(data.textColor ?? '#FFFFFF'),
         consentToSundaySharing: Boolean(data.consentToSundaySharing),

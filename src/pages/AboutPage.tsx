@@ -5,7 +5,7 @@ import { fetchPublicSettings } from '../lib/firestore-service';
 import { DEFAULT_SETTINGS } from '../lib/rcf-utils';
 import type { FellowshipSettings } from '../types/rcf';
 import { RcfLogo } from '../components/RcfLogo';
-import fellowshipGraceImg from '../assets/images/fellowship_grace_dove_1795453960062.jpg';
+import fellowshipGraceImg from '../assets/images/fellowship_grace.webp';
 
 export function AboutPage() {
   const [settings, setSettings] = useState<FellowshipSettings>(DEFAULT_SETTINGS);
@@ -46,6 +46,10 @@ export function AboutPage() {
             <img
               src={fellowshipGraceImg}
               alt="Radiant golden cross and white dove symbolizing fellowship in Christ"
+              width={360}
+              height={270}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
           </div>

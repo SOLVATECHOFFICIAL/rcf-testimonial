@@ -17,8 +17,8 @@ import { fetchActiveAnnouncements, fetchPublicSettings } from '../lib/firestore-
 import { DEFAULT_SETTINGS, formatNigeriaDateOnly } from '../lib/rcf-utils';
 import type { Announcement, FellowshipSettings } from '../types/rcf';
 import { RcfLogo } from '../components/RcfLogo';
-import jesusLightImg from '../assets/images/jesus_light_illustration_1795453959910.jpg';
-import fellowshipGraceImg from '../assets/images/fellowship_grace_dove_1795453960062.jpg';
+import jesusLightImg from '../assets/images/jesus_light.webp';
+import fellowshipGraceImg from '../assets/images/fellowship_grace.webp';
 
 export function HomePage() {
   const [settings, setSettings] = useState<FellowshipSettings>(DEFAULT_SETTINGS);
@@ -161,6 +161,11 @@ export function HomePage() {
                   <img
                     src={jesusLightImg}
                     alt="Jesus Christ in warm golden light with open arms welcoming the fellowship"
+                    width={360}
+                    height={270}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
@@ -283,6 +288,10 @@ export function HomePage() {
               <img
                 src={fellowshipGraceImg}
                 alt="Golden cross and ascending white dove of peace"
+                width={360}
+                height={270}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';

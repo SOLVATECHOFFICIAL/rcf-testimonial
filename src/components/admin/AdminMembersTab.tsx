@@ -93,6 +93,9 @@ export function AdminMembersTab({
       fullName: member.fullName,
       category: member.category,
       yearJoined: member.yearJoined,
+      monthJoined: member.monthJoined ?? '',
+      dateJoined: member.dateJoined ?? '',
+      timeJoined: member.timeJoined ?? '',
       email: member.email ?? '',
       phone: member.phone ?? '',
       department: member.department ?? '',
@@ -295,13 +298,16 @@ export function AdminMembersTab({
                       {m.email && <p className="break-all">{m.email}</p>}
                       {(m.department || m.level) && (
                         <p className="text-slate-500">
-                          {[m.department, m.level].filter(Boolean).join(' · ')}
+                          {[m.department, m.faculty, m.level].filter(Boolean).join(' · ')}
                         </p>
                       )}
                       {!m.phone && !m.email && !m.department && <span>—</span>}
                     </td>
                     <td className="py-3 px-4 align-top text-xs text-slate-600 tabular-nums">
-                      <p className="font-medium text-slate-800">{m.yearJoined}</p>
+                      <p className="font-medium text-slate-800">
+                        {[m.dateJoined, m.monthJoined, m.yearJoined].filter(Boolean).join(' ')}
+                        {m.timeJoined ? ` (${m.timeJoined})` : ''}
+                      </p>
                       <p className="text-slate-400 mt-0.5">{formatNigeriaDateTime(m.createdAt)}</p>
                     </td>
                     <td className="py-3 px-4 align-top text-right whitespace-nowrap">

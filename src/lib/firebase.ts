@@ -18,10 +18,21 @@ function readEnv(key: string): string {
   }
 }
 
+function isPlaceholderEnv(val: string): boolean {
+  if (!val) return true;
+  const lower = val.toLowerCase();
+  return (
+    lower.startsWith('your_') ||
+    lower.startsWith('your-') ||
+    lower.includes('your-project-id') ||
+    lower.includes('placeholder')
+  );
+}
+
 const envApiKey = readEnv('VITE_FIREBASE_API_KEY');
 const envProjectId = readEnv('VITE_FIREBASE_PROJECT_ID');
 
-const useEnvConfig = Boolean(envApiKey && envProjectId);
+const useEnvConfig = !isPlaceholderEnv(envApiKey) && !isPlaceholderEnv(envProjectId);
 
 const firebaseConfig = useEnvConfig
   ? {

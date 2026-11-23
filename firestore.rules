@@ -58,6 +58,7 @@ service cloud.firestore {
       return data.keys().hasAll(['memberId', 'fullName', 'category', 'yearJoined', 'submissionNonce', 'createdAt', 'updatedAt'])
         && data.keys().hasOnly([
           'memberId', 'fullName', 'category', 'yearJoined',
+          'monthJoined', 'dateJoined', 'timeJoined',
           'email', 'phone', 'department', 'faculty', 'level',
           'unit', 'workerRole', 'executivePortfolio', 'executiveSession',
           'submissionNonce', 'createdAt', 'updatedAt'
@@ -67,6 +68,9 @@ service cloud.firestore {
         && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 120
         && data.category in ['Member', 'Worker', 'Executive']
         && data.yearJoined is int && data.yearJoined >= 1980 && data.yearJoined <= 2100
+        && isOptionalString(data, 'monthJoined', 20)
+        && isOptionalString(data, 'dateJoined', 20)
+        && isOptionalString(data, 'timeJoined', 20)
         && data.submissionNonce is string && data.submissionNonce.size() >= 8 && data.submissionNonce.size() <= 64
         && data.submissionNonce.matches('^[a-zA-Z0-9_\\-]+$')
         && isOptionalString(data, 'email', 160)
@@ -86,18 +90,24 @@ service cloud.firestore {
     }
 
     function isValidTestimonyCreateData(data) {
-      return data.keys().hasAll(['authorName', 'testimonyText', 'backgroundColor', 'textColor', 'consentToSundaySharing', 'submissionNonce', 'createdAt'])
+      return data.keys().hasAll(['authorName', 'testimonyContext', 'testimonyText', 'backgroundColor', 'textColor', 'consentToSundaySharing', 'submissionNonce', 'createdAt'])
         && data.keys().hasOnly([
           'authorMemberId', 'authorName', 'membershipCategory', 'unit',
-          'testimonyTitle', 'testimonyText', 'backgroundColor', 'textColor',
-          'consentToSundaySharing', 'submissionNonce', 'createdAt'
+          'testimonyContext', 'testimonyTitle', 'testimonyText', 'photoDataUrl',
+          'backgroundColor', 'textColor', 'consentToSundaySharing', 'submissionNonce', 'createdAt'
         ])
         && isOptionalString(data, 'authorMemberId', 32)
         && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 120
         && isOptionalString(data, 'membershipCategory', 32)
         && isOptionalString(data, 'unit', 80)
+        && data.testimonyContext is string && data.testimonyContext.size() >= 2 && data.testimonyContext.size() <= 60
         && isOptionalString(data, 'testimonyTitle', 140)
         && data.testimonyText is string && data.testimonyText.size() >= 5 && data.testimonyText.size() <= 3000
+        && (!('photoDataUrl' in data) || (
+          data.photoDataUrl is string &&
+          data.photoDataUrl.size() <= 100000 &&
+          data.photoDataUrl.matches('^data:image/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$')
+        ))
         && data.backgroundColor is string && data.backgroundColor.size() == 7 && data.backgroundColor.matches('^#[0-9a-fA-F]{6}$')
         && data.textColor is string && data.textColor.size() == 7 && data.textColor.matches('^#[0-9a-fA-F]{6}$')
         && data.consentToSundaySharing is bool
@@ -109,8 +119,9 @@ service cloud.firestore {
       return data.keys().hasAll(['authorName', 'testimonyText', 'backgroundColor', 'textColor', 'consentToSundaySharing', 'submissionNonce', 'createdAt', 'updatedAt'])
         && data.keys().hasOnly([
           'authorMemberId', 'authorName', 'membershipCategory', 'unit',
-          'testimonyTitle', 'testimonyText', 'backgroundColor', 'textColor',
-          'consentToSundaySharing', 'presentationCopy', 'submissionNonce', 'createdAt', 'updatedAt'
+          'testimonyContext', 'testimonyTitle', 'testimonyText', 'photoDataUrl',
+          'backgroundColor', 'textColor', 'consentToSundaySharing', 'presentationCopy',
+          'submissionNonce', 'createdAt', 'updatedAt'
         ])
         && isOptionalString(data, 'presentationCopy', 3000);
     }
@@ -179,6 +190,12 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if isValidId(memberDocId)
         && isValidMemberData(incoming())
+        && incoming().keys().hasAll(['email', 'phone', 'department', 'faculty', 'level'])
+        && incoming().email.size() >= 5
+        && incoming().phone.size() >= 7
+        && incoming().department.size() >= 2
+        && incoming().faculty.size() >= 2
+        && incoming().level.size() >= 2
         && incoming().memberId == memberDocId
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time;
@@ -189,8 +206,8 @@ service cloud.firestore {
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
         && incoming().diff(existing()).affectedKeys().hasOnly([
-          'fullName', 'category', 'yearJoined', 'email', 'phone',
-          'department', 'faculty', 'level', 'unit', 'workerRole',
+          'fullName', 'category', 'yearJoined', 'monthJoined', 'dateJoined', 'timeJoined',
+          'email', 'phone', 'department', 'faculty', 'level', 'unit', 'workerRole',
           'executivePortfolio', 'executiveSession', 'updatedAt'
         ]);
       allow delete: if isAdmin() && isValidId(memberDocId);
