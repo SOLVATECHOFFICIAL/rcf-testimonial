@@ -2,8 +2,8 @@
 
 ## 1. Data Invariants
 1. **Default Deny**: All unmatched Firestore paths deny read and write (`allow read, write: if false;`).
-2. **PII & Testimony Privacy**: Ordinary visitors and anonymous/non-admin users can NEVER read `members`, `testimonies`, `sundayLists`, or list `admins`.
-3. **No Self-Assigned Privileges**: Public registration (`members`) and testimony submission (`testimonies`) strictly whitelist fields via `keys().hasOnly(...)` so no `role`, `isAdmin`, or privilege field can be injected. Non-admins cannot write to `admins`, `settings`, `announcements`, or `sundayLists`.
+2. **PII & Testimony Privacy**: Ordinary visitors and non-owner users can NEVER read `members`, `testimonies`, `sundayLists`, or list `admins`. Verified members may only read their own `members` record (`uid == request.auth.uid` or verified `email == request.auth.token.email`), and testimonies remain strictly admin-read only.
+3. **No Self-Assigned Privileges**: Member registration (`members`) requires a verified Google Auth account (`uid == request.auth.uid` and `email == request.auth.token.email`) and strictly whitelists fields via `keys().hasOnly(...)` so no `role`, `isAdmin`, or privilege field can be injected. Non-admins cannot write to `admins`, `settings`, `announcements`, or `sundayLists`.
 4. **Verified Admin Identity**: Admin access requires BOTH `request.auth != null`, `request.auth.token.email_verified == true`, AND either an existing document at `/admins/$(request.auth.uid)` or the bootstrapped super-admin email `rcflasuedepe12@gmail.com`.
 5. **Server Timestamp Integrity**: All `createdAt` and `updatedAt` fields MUST equal `request.time`. On updates, `createdAt` and original testimony body (`testimonyText`) are immutable.
 6. **Path ID & Payload Bounds**: Every document ID matches `^[a-zA-Z0-9_\-]+$` (`<= 128` chars), and every string/list field enforces explicit type and length limits.

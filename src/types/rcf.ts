@@ -2,6 +2,7 @@ export type MemberCategory = 'Member' | 'Worker' | 'Executive';
 
 export interface Member {
   id: string;
+  uid?: string;
   memberId: string;
   fullName: string;
   category: MemberCategory;
@@ -24,6 +25,7 @@ export interface Member {
 }
 
 export interface RegistrationInput {
+  uid?: string;
   fullName: string;
   category: MemberCategory;
   yearJoined: number;
@@ -137,6 +139,8 @@ export interface AdminUser {
 }
 
 export interface MemberSession {
+  uid?: string;
+  email?: string;
   memberId: string;
   fullName: string;
   category: MemberCategory;

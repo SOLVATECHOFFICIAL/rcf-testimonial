@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  DEFAULT_EXECUTIVE_PORTFOLIOS,
   exportMembersToCsv,
   formatNigeriaDateTime,
   formatSundayListPlainText,
@@ -225,4 +226,31 @@ test('isValidHttpUrl validates http/https only', () => {
   assert.equal(isValidHttpUrl('https://lastword.example.org/rcf'), true);
   assert.equal(isValidHttpUrl('javascript:alert(1)'), false);
   assert.equal(isValidHttpUrl(''), false);
+});
+
+test('DEFAULT_EXECUTIVE_PORTFOLIOS contains all 21 requested portfolios', () => {
+  const expected = [
+    'President',
+    'Vice President',
+    'General Secretary',
+    'Assistant General Secretary',
+    'Evangelism Secretary',
+    'Financial Secretary',
+    'Treasurer',
+    'Chief Protocol Officer',
+    'Media',
+    'Technical',
+    'Beautification',
+    'Music Director',
+    'Prayer Secretary',
+    'Follow Up Secretary',
+    'Bible Study Secretary',
+    'Drama Coordinator',
+    'Welfare Secretary',
+    "Brother's Coordinator",
+    "Sister's Coordinator",
+    'Ushering Secretary',
+    'Academic Secretary',
+  ];
+  assert.deepEqual(DEFAULT_EXECUTIVE_PORTFOLIOS, expected);
 });

@@ -24,7 +24,7 @@ test('firestore.rules enforces verified email and bootstrapped super-admin email
 test('firestore.rules protects members and testimonies from public reads', () => {
   assert.match(
     rulesSource,
-    /match \/members\/\{memberDocId\} \{[\s\S]*allow get: if isValidId\(memberDocId\) && isAdmin\(\);[\s\S]*allow list: if isAdmin\(\);/,
+    /match \/members\/\{memberDocId\} \{[\s\S]*isAdmin\(\) \|\|[\s\S]*request\.auth\.uid[\s\S]*request\.auth\.token\.email[\s\S]*incoming\(\)\.uid == request\.auth\.uid/,
   );
   assert.match(
     rulesSource,

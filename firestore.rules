@@ -57,12 +57,13 @@ service cloud.firestore {
     function isValidMemberData(data) {
       return data.keys().hasAll(['memberId', 'fullName', 'category', 'yearJoined', 'submissionNonce', 'createdAt', 'updatedAt'])
         && data.keys().hasOnly([
-          'memberId', 'fullName', 'category', 'yearJoined',
+          'uid', 'memberId', 'fullName', 'category', 'yearJoined',
           'monthJoined', 'dateJoined', 'timeJoined',
           'email', 'phone', 'department', 'faculty', 'level',
           'unit', 'workerRole', 'executivePortfolio', 'executiveSession',
           'submissionNonce', 'createdAt', 'updatedAt'
         ])
+        && (!('uid' in data) || (data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$')))
         && data.memberId is string && data.memberId.size() >= 8 && data.memberId.size() <= 32
         && data.memberId.matches('^RCF-[0-9]{4}-[A-Z0-9]{4,10}$')
         && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 120
@@ -184,13 +185,27 @@ service cloud.firestore {
       allow list, write: if false;
     }
 
-    // Members: PII isolated to admins; public registration create validated strictly
+    // Members: PII isolated to admins or the verified member owner; Google-verified create & legacy UID link
     match /members/{memberDocId} {
-      allow get: if isValidId(memberDocId) && isAdmin();
-      allow list: if isAdmin();
+      allow get: if isValidId(memberDocId) && (
+        isAdmin() ||
+        (isVerifiedUser() && (
+          ('uid' in existing() && existing().uid == request.auth.uid) ||
+          ('email' in existing() && existing().email == request.auth.token.email)
+        ))
+      );
+      allow list: if isAdmin() || (
+        isVerifiedUser() && (
+          resource.data.uid == request.auth.uid ||
+          resource.data.email == request.auth.token.email
+        )
+      );
       allow create: if isValidId(memberDocId)
+        && isVerifiedUser()
         && isValidMemberData(incoming())
-        && incoming().keys().hasAll(['email', 'phone', 'department', 'faculty', 'level'])
+        && incoming().keys().hasAll(['uid', 'email', 'phone', 'department', 'faculty', 'level'])
+        && incoming().uid == request.auth.uid
+        && incoming().email == request.auth.token.email
         && incoming().email.size() >= 5
         && incoming().phone.size() >= 7
         && incoming().department.size() >= 2
@@ -199,17 +214,32 @@ service cloud.firestore {
         && incoming().memberId == memberDocId
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time;
-      allow update: if isAdmin()
-        && isValidId(memberDocId)
+      allow update: if isValidId(memberDocId)
         && isValidMemberData(incoming())
-        && incoming().memberId == existing().memberId
-        && incoming().createdAt == existing().createdAt
-        && incoming().updatedAt == request.time
-        && incoming().diff(existing()).affectedKeys().hasOnly([
-          'fullName', 'category', 'yearJoined', 'monthJoined', 'dateJoined', 'timeJoined',
-          'email', 'phone', 'department', 'faculty', 'level', 'unit', 'workerRole',
-          'executivePortfolio', 'executiveSession', 'updatedAt'
-        ]);
+        && (
+          (
+            isAdmin()
+            && incoming().memberId == existing().memberId
+            && incoming().createdAt == existing().createdAt
+            && incoming().updatedAt == request.time
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'fullName', 'category', 'yearJoined', 'monthJoined', 'dateJoined', 'timeJoined',
+              'email', 'phone', 'department', 'faculty', 'level', 'unit', 'workerRole',
+              'executivePortfolio', 'executiveSession', 'updatedAt'
+            ])
+          ) ||
+          (
+            isVerifiedUser()
+            && !('uid' in existing())
+            && 'email' in existing()
+            && existing().email == request.auth.token.email
+            && incoming().uid == request.auth.uid
+            && incoming().memberId == existing().memberId
+            && incoming().createdAt == existing().createdAt
+            && incoming().updatedAt == request.time
+            && incoming().diff(existing()).affectedKeys().hasOnly(['uid', 'updatedAt'])
+          )
+        );
       allow delete: if isAdmin() && isValidId(memberDocId);
     }
 

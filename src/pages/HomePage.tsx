@@ -115,7 +115,7 @@ export function HomePage() {
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-300">
                 <span className="inline-flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-[#F5B700] shrink-0" />
-                  Quick 2-step flow: Register first, then create your colorful testimony card
+                  Quick 2-step flow: Sign in with Google, complete your profile once, then share your testimony
                 </span>
               </div>
 
@@ -195,10 +195,10 @@ export function HomePage() {
             </span>
             <div>
               <h2 className="font-display font-bold text-base sm:text-lg">
-                Quick Fellowship Registration
+                Sign In with Google &amp; Profile
               </h2>
               <p className="text-sm text-sky-50 mt-1 leading-relaxed">
-                When you tap Share Testimony, first-time visitors complete a short registration as a Member, Worker, or Executive.
+                Sign in with your Gmail to recover your fellowship profile anytime, or complete quick registration if it is your first visit.
               </p>
             </div>
           </div>

@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut,
-  type User,
-} from 'firebase/auth';
-import {
   Award,
   Briefcase,
   ClipboardList,
@@ -19,7 +13,8 @@ import {
   ShieldAlert,
   Users,
 } from 'lucide-react';
-import { auth, googleProvider, parseFirestoreErrorMessage } from '../lib/firebase';
+import { useAuth } from '../context/auth-context';
+import { parseFirestoreErrorMessage } from '../lib/firebase';
 import {
   fetchAdmins,
   fetchAllAnnouncements,
@@ -27,7 +22,6 @@ import {
   fetchAllTestimonies,
   fetchPublicSettings,
   fetchSundayLists,
-  verifyAndBootstrapAdmin,
 } from '../lib/firestore-service';
 import { DEFAULT_SETTINGS, INITIAL_ADMIN_EMAIL } from '../lib/rcf-utils';
 import type {
@@ -68,11 +62,15 @@ const TABS: { id: AdminTabId; label: string; icon: typeof LayoutDashboard }[] = 
 ];
 
 export function AdminPage() {
-  const [authLoading, setAuthLoading] = useState(true);
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [authError, setAuthError] = useState('');
-  const [signingIn, setSigningIn] = useState(false);
+  const {
+    loading: authLoading,
+    firebaseUser,
+    adminUser,
+    authError,
+    signingIn,
+    signInWithGoogle,
+    signOutUser,
+  } = useAuth();
 
   const [activeTab, setActiveTab] = useState<AdminTabId>('overview');
   const [dataLoading, setDataLoading] = useState(false);
@@ -112,48 +110,22 @@ export function AdminPage() {
   }, []);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      setFirebaseUser(user);
-      setAuthError('');
-      if (!user) {
-        setAdminUser(null);
-        setAuthLoading(false);
-        return;
-      }
-
-      const verifiedAdmin = await verifyAndBootstrapAdmin(user);
-      setAdminUser(verifiedAdmin);
-      setAuthLoading(false);
-
-      if (verifiedAdmin) {
-        void loadDashboardData();
-      }
-    });
-    return () => unsub();
-  }, [loadDashboardData]);
+    if (adminUser) {
+      void loadDashboardData();
+    }
+  }, [adminUser, loadDashboardData]);
 
   async function handleGoogleSignIn() {
-    if (signingIn) return;
-    setSigningIn(true);
-    setAuthError('');
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      setAuthError(
-        err instanceof Error
-          ? err.message
-          : 'Google sign-in could not be completed. Please try again.',
-      );
-    } finally {
-      setSigningIn(false);
-    }
+    await signInWithGoogle();
   }
 
   async function handleSignOut() {
-    await signOut(auth);
-    setAdminUser(null);
+    await signOutUser();
     setMembers([]);
     setTestimonies([]);
+    setAnnouncements([]);
+    setSundayLists([]);
+    setAdmins([]);
   }
 
   function handleToggleSundaySelect(testimonyId: string) {
@@ -424,6 +396,21 @@ export function AdminPage() {
           )}
         </>
       )}
+
+      {/* Bottom Admin Logout Bar */}
+      <div className="no-print bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="text-xs text-slate-600">
+          Signed in as <span className="font-semibold text-[#0B2545]">{adminUser.email}</span> ({adminUser.role})
+        </div>
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          className="inline-flex items-center justify-center gap-2 min-h-[42px] px-5 py-2 rounded-xl bg-red-600 text-white text-xs sm:text-sm font-semibold hover:bg-red-700 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout from Admin
+        </button>
+      </div>
     </div>
   );
 }

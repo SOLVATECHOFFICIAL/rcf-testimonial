@@ -20,7 +20,7 @@ export const DEFAULT_UNITS: string[] = [
   'Technical',
 ];
 
-export const DEFAULT_EXECUTIVE_PORTFOLIOS: string[] = [
+export const LEGACY_EXECUTIVE_PORTFOLIOS: string[] = [
   'President',
   'Vice President',
   'General Secretary',
@@ -30,6 +30,30 @@ export const DEFAULT_EXECUTIVE_PORTFOLIOS: string[] = [
   'Welfare',
   'Bible Study Coordinator',
   'Other',
+];
+
+export const DEFAULT_EXECUTIVE_PORTFOLIOS: string[] = [
+  'President',
+  'Vice President',
+  'General Secretary',
+  'Assistant General Secretary',
+  'Evangelism Secretary',
+  'Financial Secretary',
+  'Treasurer',
+  'Chief Protocol Officer',
+  'Media',
+  'Technical',
+  'Beautification',
+  'Music Director',
+  'Prayer Secretary',
+  'Follow Up Secretary',
+  'Bible Study Secretary',
+  'Drama Coordinator',
+  'Welfare Secretary',
+  "Brother's Coordinator",
+  "Sister's Coordinator",
+  'Ushering Secretary',
+  'Academic Secretary',
 ];
 
 export const DEFAULT_SETTINGS: FellowshipSettings = {

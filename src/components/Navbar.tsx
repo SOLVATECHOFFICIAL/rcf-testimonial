@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { HeartHandshake, Menu, X } from 'lucide-react';
+import { HeartHandshake, LayoutDashboard, LogIn, Menu, User, X } from 'lucide-react';
+import { useAuth } from '../context/auth-context';
 import { RcfLogo } from './RcfLogo';
 
 const NAV_ITEMS = [
@@ -11,6 +12,21 @@ const NAV_ITEMS = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { loading, firebaseUser, adminUser, memberProfile } = useAuth();
+
+  const accountAction = (() => {
+    if (loading) return null;
+    if (!firebaseUser) {
+      return { to: '/login', label: 'Sign In', icon: LogIn };
+    }
+    if (adminUser) {
+      return { to: '/admin', label: 'Dashboard', icon: LayoutDashboard };
+    }
+    if (memberProfile) {
+      return { to: '/profile', label: 'My Profile', icon: User };
+    }
+    return { to: '/complete-profile', label: 'Complete Profile', icon: User };
+  })();
 
   return (
     <header className="no-print sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
@@ -50,8 +66,18 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Zone 3: Single Primary Action + Mobile Menu Toggle */}
+        {/* Zone 3: Auth / Profile + Primary Action + Mobile Menu Toggle */}
         <div className="flex items-center gap-2 shrink-0">
+          {accountAction && (
+            <Link
+              to={accountAction.to}
+              className="hidden sm:inline-flex items-center justify-center gap-1.5 min-h-[40px] px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-[#0B2545] text-sm font-semibold hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0"
+            >
+              <accountAction.icon className="w-4 h-4 text-[#0369A1]" />
+              {accountAction.label}
+            </Link>
+          )}
+
           <Link
             to="/welcome"
             className="hidden sm:inline-flex items-center justify-center gap-2 min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-[#0B2545] to-[#1D4ED8] text-white text-sm font-semibold hover:from-[#143764] hover:to-[#2563EB] transition-all whitespace-nowrap shrink-0 shadow-xs"
@@ -95,7 +121,17 @@ export function Navbar() {
               {item.label}
             </NavLink>
           ))}
-          <div className="pt-2 border-t border-slate-100">
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            {accountAction && (
+              <Link
+                to={accountAction.to}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl border border-slate-300 bg-white text-[#0B2545] text-sm font-semibold"
+              >
+                <accountAction.icon className="w-4 h-4 text-[#0369A1]" />
+                {accountAction.label}
+              </Link>
+            )}
             <Link
               to="/welcome"
               onClick={() => setMobileOpen(false)}

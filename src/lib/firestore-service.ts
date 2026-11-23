@@ -16,10 +16,12 @@ import {
 import type { User } from 'firebase/auth';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import {
+  DEFAULT_EXECUTIVE_PORTFOLIOS,
   DEFAULT_SETTINGS,
   generateMemberId,
   generateSafeId,
   INITIAL_ADMIN_EMAIL,
+  LEGACY_EXECUTIVE_PORTFOLIOS,
   validateRegistrationInput,
   validateTestimonyInput,
 } from './rcf-utils';
@@ -86,12 +88,17 @@ export async function fetchPublicSettings(): Promise<FellowshipSettings> {
         Array.isArray(data.units) && data.units.length > 0
           ? data.units.filter((u): u is string => typeof u === 'string' && u.trim().length > 0)
           : DEFAULT_SETTINGS.units,
-      executivePortfolios:
-        Array.isArray(data.executivePortfolios) && data.executivePortfolios.length > 0
+      executivePortfolios: (() => {
+        const raw = Array.isArray(data.executivePortfolios)
           ? data.executivePortfolios.filter(
               (p): p is string => typeof p === 'string' && p.trim().length > 0,
             )
-          : DEFAULT_SETTINGS.executivePortfolios,
+          : [];
+        const isLegacy =
+          raw.length === LEGACY_EXECUTIVE_PORTFOLIOS.length &&
+          raw.every((p, idx) => p === LEGACY_EXECUTIVE_PORTFOLIOS[idx]);
+        return raw.length === 0 || isLegacy ? DEFAULT_EXECUTIVE_PORTFOLIOS : raw;
+      })(),
       aboutText:
         typeof data.aboutText === 'string' && data.aboutText.trim()
           ? data.aboutText
@@ -151,11 +158,96 @@ export async function fetchActiveAnnouncements(): Promise<Announcement[]> {
   }
 }
 
-// --- Public Writes (Validated) ---
+function mapMemberDoc(docId: string, data: Record<string, unknown>): Member {
+  return {
+    id: docId,
+    uid: typeof data.uid === 'string' ? data.uid : undefined,
+    memberId: String(data.memberId ?? docId),
+    fullName: String(data.fullName ?? ''),
+    category: (data.category as Member['category']) || 'Member',
+    yearJoined: Number(data.yearJoined ?? new Date().getFullYear()),
+    monthJoined: typeof data.monthJoined === 'string' ? data.monthJoined : undefined,
+    dateJoined: typeof data.dateJoined === 'string' ? data.dateJoined : undefined,
+    timeJoined: typeof data.timeJoined === 'string' ? data.timeJoined : undefined,
+    email: typeof data.email === 'string' ? data.email : undefined,
+    phone: typeof data.phone === 'string' ? data.phone : undefined,
+    department: typeof data.department === 'string' ? data.department : undefined,
+    faculty: typeof data.faculty === 'string' ? data.faculty : undefined,
+    level: typeof data.level === 'string' ? data.level : undefined,
+    unit: typeof data.unit === 'string' ? data.unit : undefined,
+    workerRole: typeof data.workerRole === 'string' ? data.workerRole : undefined,
+    executivePortfolio:
+      typeof data.executivePortfolio === 'string' ? data.executivePortfolio : undefined,
+    executiveSession:
+      typeof data.executiveSession === 'string' ? data.executiveSession : undefined,
+    submissionNonce: String(data.submissionNonce ?? ''),
+    createdAt: toDate(data.createdAt),
+    updatedAt: toDate(data.updatedAt),
+  };
+}
+
+export async function findMemberByAuthUser(user: User): Promise<Member | null> {
+  if (!user.uid) return null;
+
+  try {
+    const byUidQuery = query(
+      collection(db, 'members'),
+      where('uid', '==', user.uid),
+      limit(1),
+    );
+    const uidSnap = await getDocs(byUidQuery);
+    if (!uidSnap.empty) {
+      const d = uidSnap.docs[0];
+      return mapMemberDoc(d.id, d.data());
+    }
+  } catch (err) {
+    if (!isPermissionDeniedError(err)) {
+      handleFirestoreError(err, OperationType.LIST, 'members');
+    }
+    return null;
+  }
+
+  if (user.email && user.emailVerified) {
+    try {
+      const byEmailQuery = query(
+        collection(db, 'members'),
+        where('email', '==', user.email),
+        limit(1),
+      );
+      const emailSnap = await getDocs(byEmailQuery);
+      if (!emailSnap.empty) {
+        const d = emailSnap.docs[0];
+        const member = mapMemberDoc(d.id, d.data());
+        if (!member.uid) {
+          try {
+            await updateDoc(doc(db, 'members', d.id), {
+              uid: user.uid,
+              updatedAt: serverTimestamp(),
+            });
+            member.uid = user.uid;
+          } catch {
+            // Legacy UID linking skipped if rule hasn't been deployed yet
+          }
+        }
+        return member;
+      }
+    } catch (err) {
+      if (!isPermissionDeniedError(err)) {
+        handleFirestoreError(err, OperationType.LIST, 'members');
+      }
+      return null;
+    }
+  }
+
+  return null;
+}
+
+// --- Public / Member Writes (Validated) ---
 
 export async function registerMember(
   input: RegistrationInput,
   submissionNonce: string,
+  uid?: string,
 ): Promise<Member> {
   const check = validateRegistrationInput(input);
   if (!check.valid) {
@@ -165,8 +257,10 @@ export async function registerMember(
 
   const memberId = generateMemberId(input.yearJoined);
   const path = `members/${memberId}`;
+  const resolvedUid = uid?.trim() || input.uid?.trim() || undefined;
 
   const rawPayload: Record<string, unknown> = {
+    uid: resolvedUid,
     memberId,
     fullName: input.fullName.trim(),
     category: input.category,
@@ -222,6 +316,7 @@ export async function registerMember(
 
     return {
       id: memberId,
+      uid: resolvedUid,
       memberId,
       fullName: input.fullName.trim(),
       category: input.category,
@@ -364,33 +459,7 @@ export async function fetchAllMembers(maxResults = 300): Promise<Member[]> {
   try {
     const q = query(collection(db, 'members'), orderBy('createdAt', 'desc'), limit(maxResults));
     const snap = await getDocs(q);
-    return snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        memberId: String(data.memberId ?? d.id),
-        fullName: String(data.fullName ?? ''),
-        category: (data.category as Member['category']) || 'Member',
-        yearJoined: Number(data.yearJoined ?? new Date().getFullYear()),
-        monthJoined: typeof data.monthJoined === 'string' ? data.monthJoined : undefined,
-        dateJoined: typeof data.dateJoined === 'string' ? data.dateJoined : undefined,
-        timeJoined: typeof data.timeJoined === 'string' ? data.timeJoined : undefined,
-        email: typeof data.email === 'string' ? data.email : undefined,
-        phone: typeof data.phone === 'string' ? data.phone : undefined,
-        department: typeof data.department === 'string' ? data.department : undefined,
-        faculty: typeof data.faculty === 'string' ? data.faculty : undefined,
-        level: typeof data.level === 'string' ? data.level : undefined,
-        unit: typeof data.unit === 'string' ? data.unit : undefined,
-        workerRole: typeof data.workerRole === 'string' ? data.workerRole : undefined,
-        executivePortfolio:
-          typeof data.executivePortfolio === 'string' ? data.executivePortfolio : undefined,
-        executiveSession:
-          typeof data.executiveSession === 'string' ? data.executiveSession : undefined,
-        submissionNonce: String(data.submissionNonce ?? ''),
-        createdAt: toDate(data.createdAt),
-        updatedAt: toDate(data.updatedAt),
-      };
-    });
+    return snap.docs.map((d) => mapMemberDoc(d.id, d.data()));
   } catch (err) {
     handleFirestoreError(err, OperationType.LIST, path);
   }
@@ -408,6 +477,7 @@ export async function updateMemberRecord(
   }
   const path = `members/${memberId}`;
   const fullPayload = stripEmptyStrings({
+    uid: existingMember.uid,
     memberId: existingMember.memberId,
     fullName: input.fullName,
     category: input.category,
@@ -437,6 +507,7 @@ export async function updateMemberRecord(
     } catch (firstErr) {
       if (!isPermissionDeniedError(firstErr)) throw firstErr;
       const legacyPayload = stripEmptyStrings({
+        uid: existingMember.uid,
         memberId: existingMember.memberId,
         fullName: input.fullName,
         category: input.category,

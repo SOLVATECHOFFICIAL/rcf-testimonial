@@ -5,6 +5,13 @@
       "description": "Registered fellowship member, worker, or executive.",
       "type": "object",
       "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID linked to the registered member."
+        },
         "memberId": {
           "type": "string",
           "minLength": 8,
@@ -366,7 +373,7 @@
   "firestore": {
     "/members/{memberDocId}": {
       "schema": { "$ref": "#/entities/Member" },
-      "description": "Registered fellowship members (admin-read only, validated public create)."
+      "description": "Registered fellowship members (admin and verified owner read, verified member create/UID-link)."
     },
     "/testimonies/{testimonyId}": {
       "schema": { "$ref": "#/entities/Testimony" },

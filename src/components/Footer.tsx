@@ -30,12 +30,6 @@ export function Footer() {
             <Link to="/privacy" className="text-slate-200 hover:text-white transition-colors py-1">
               Privacy Notice
             </Link>
-            <Link
-              to="/admin"
-              className="text-slate-300 hover:text-[#F5B700] transition-colors py-1"
-            >
-              Admin
-            </Link>
           </nav>
         </div>
 
