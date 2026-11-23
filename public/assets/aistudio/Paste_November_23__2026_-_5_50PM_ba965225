@@ -1,0 +1,1082 @@
+BUILD A COMPLETE RCF FELLOWSHIP WEBSITE — REAL, FUNCTIONAL, FAST & DEPLOYABLE
+
+Build a complete, production-minded, mobile-first website for RCF (Redeemed Christian Fellowship). This is a real church fellowship website, not a demo, mockup, template preview, or static landing page.
+
+The website should be beautiful, modern, fast, simple, easy for students to use on mobile phones, and fully connected to Firebase.
+
+The main purpose of this website is:
+
+1. Allow members to register quickly.
+2. Allow members to share testimonies using beautiful social-media-style colored text cards.
+3. Allow authorized administrators to view all submitted testimonies, including the author and exact submission date/time.
+4. Allow administrators to organize testimonies for Sunday fellowship.
+5. Connect the website to LastWord through a configurable link.
+6. Deploy the website through GitHub and Vercel.
+
+Do not overcomplicate the application. Prioritize speed, simplicity, beautiful UI, working functionality, and security.
+
+---
+
+1. PROJECT NAME AND BRANDING
+
+Name: Redeemed Christian Fellowship (RCF)
+
+The website should use the RCF identity.
+
+Use the supplied RCF logo asset:
+
+- Expected filename: RCF.webp
+- If the asset is uploaded to the project, use the actual file.
+- Do not recreate, distort, replace or invent a different logo.
+- Preserve the logo proportions.
+- Display it appropriately on the homepage, navigation, registration, welcome screen, admin dashboard, favicon where appropriate, and mobile layout.
+- If the logo is not available in the project files, create a placeholder location for the asset and clearly explain where I must upload it. Do not invent the logo.
+
+Branding:
+
+- Christian fellowship.
+- Modern campus fellowship.
+- Clean and elegant.
+- Welcoming.
+- Minimal.
+- Fast.
+- Professional.
+- Not excessively decorative.
+
+Design colors:
+
+- Dark navy or deep blue as a primary color.
+- White or soft off-white backgrounds.
+- Subtle gold or warm accents where appropriate.
+- Modern readable fonts.
+- Attractive rounded cards.
+- Gentle transitions.
+- Good accessibility and contrast.
+
+The design must look professionally designed, not like a generic AI template.
+
+---
+
+2. MAIN WEBSITE STRUCTURE
+
+Build the entire website within ONE application and ONE deployment.
+
+Required pages and routes:
+
+- "/" — Homepage.
+- "/register" — Member registration.
+- "/welcome" — Fellowship welcome/testimony dashboard.
+- "/admin" — Admin login and protected admin dashboard.
+- "/about" — About RCF.
+- "/lastword" — LastWord access/integration page or redirect/configurable link.
+- "/privacy" — Privacy notice.
+
+Do not create a separate admin website.
+
+The admin dashboard must be part of the same application.
+
+The public website must remain accessible without requiring ordinary visitors to log in.
+
+---
+
+3. HOMEPAGE
+
+Build a welcoming, attractive, mobile-first homepage.
+
+Include:
+
+- RCF logo.
+- RCF name: Redeemed Christian Fellowship.
+- A welcoming headline such as:
+  "Welcome to Redeemed Christian Fellowship"
+- A short spiritual and fellowship introduction.
+- A prominent "Join RCF" button.
+- A prominent "Share Your Testimony" button.
+- A LastWord button.
+- A section for announcements.
+- A section for upcoming fellowship activities, if configured.
+- About RCF section.
+- Contact information section.
+- Footer.
+- Privacy notice link.
+
+The homepage must be simple and quick to load.
+
+Do not add unnecessary pages, complex animations, huge video backgrounds, or heavy elements.
+
+The homepage should work beautifully on:
+
+- Android phones.
+- iPhones.
+- Tablets.
+- Desktop computers.
+
+---
+
+4. MEMBER REGISTRATION
+
+Create a fast, simple registration form.
+
+Registration should not require ordinary members to create a password or sign in with Google.
+
+Ordinary members should be able to register quickly through a public form.
+
+Fields:
+
+Required:
+
+- Full name.
+- Membership category.
+- Year joined RCF.
+
+Optional, where appropriate:
+
+- Gmail/email address.
+- Phone number.
+- Department.
+- Faculty.
+- Level.
+- Other contact details only if useful.
+
+Membership category options:
+
+- Member.
+- Worker.
+- Executive.
+
+Use conditional fields.
+
+If the person selects MEMBER:
+
+- Show the normal registration fields only.
+
+If the person selects WORKER:
+
+- Show a Unit field.
+- Show a Worker Role/Responsibility field, which may be optional.
+
+If the person selects EXECUTIVE:
+
+- Show Executive Portfolio.
+- Show Executive Session/Tenure.
+- Show Unit or department where appropriate.
+
+The fellowship should be able to configure its units and executive portfolio options later.
+
+Examples of units:
+
+- Choir.
+- Ushering.
+- Media.
+- Prayer.
+- Welfare.
+- Evangelism.
+- Protocol.
+- Technical.
+
+Examples of executive portfolios:
+
+- President.
+- Vice President.
+- General Secretary.
+- Assistant Secretary.
+- Treasurer.
+- Financial Secretary.
+- Welfare.
+- Bible Study Coordinator.
+- Other.
+
+Do not permanently hardcode every possible unit or executive position. Allow configuration in the admin dashboard.
+
+The registration form should:
+
+- Be easy to complete.
+- Avoid unnecessary fields.
+- Show only relevant conditional fields.
+- Validate required information.
+- Display clear errors.
+- Show a success message after registration.
+- Prevent accidental duplicate submissions.
+- Save the actual data in Firebase Firestore.
+- Automatically generate a unique member ID.
+
+Example member ID:
+RCF-2026-0001
+
+Do not rely on a hardcoded or easily duplicated counter. Generate IDs safely and uniquely using a secure approach.
+
+After registration:
+
+- Show a welcoming success screen.
+- Provide a button to continue to the RCF welcome/testimony dashboard.
+- Store enough information to identify the member for their testimony submission experience without requiring a password.
+
+The registration process must remain simple.
+
+---
+
+5. MEMBER WELCOME DASHBOARD
+
+After successful registration, take the user to "/welcome".
+
+Create a warm, welcoming experience.
+
+Display:
+
+- RCF logo.
+- "Welcome to RCF!"
+- A short fellowship greeting.
+- Their name where available.
+- A prominent testimony composer.
+- A LastWord access button.
+- Optional announcements.
+
+The main purpose of this page is testimony sharing.
+
+Do not turn this into a complex member portal.
+
+Ordinary users should not need a complicated login system.
+
+Do not expose the full member database or all submitted testimonies publicly.
+
+---
+
+6. FACEBOOK-STYLE TESTIMONY COMPOSER
+
+This is one of the most important features of the website.
+
+Create an attractive social-media-inspired testimony composer.
+
+The member should be able to:
+
+1. Write a testimony.
+2. Choose a colored background.
+3. Preview their testimony.
+4. Submit their testimony.
+
+The experience should resemble a simple Facebook text post with selectable colorful backgrounds, but should be branded for RCF.
+
+The composer should include:
+
+- Text input area.
+- Optional testimony title.
+- Background color selector.
+- Live preview.
+- Submit button.
+- Character count if useful.
+- Clear validation.
+- Submission confirmation.
+
+Suggested background presets:
+
+- Black/dark charcoal.
+- Deep blue.
+- Light blue.
+- Pink.
+- Purple.
+- Green.
+- Gold.
+- Orange.
+- White or light neutral.
+
+The colors must be visually attractive.
+
+Automatically adjust text color to maintain accessibility and readability when the background changes.
+
+Do not allow unreadable combinations.
+
+The preview must update instantly when the user selects a color.
+
+Example:
+
+A testimony may appear as a large colored card with centered or nicely aligned text, resembling a social media text post.
+
+The testimony should be primarily text-based. Do not require images or uploads for the core experience.
+
+Do not require users to provide a testimony category unless it is genuinely useful. Keep the composer minimal.
+
+Include a clear consent choice:
+
+- "I agree that the fellowship may consider this testimony for sharing during Sunday fellowship."
+
+Do not assume consent to public sharing if the member has not agreed.
+
+The testimony submission should be immediately saved in Firebase Firestore.
+
+After submission:
+
+- Display a success confirmation.
+- Clear the composer only after successful saving.
+- Prevent accidental duplicate submission.
+- Allow the user to leave the website.
+
+No testimony approval workflow is required for the first version.
+
+No complicated scheduling workflow is required for ordinary members.
+
+---
+
+7. TESTIMONY DATA
+
+Each testimony should be saved with appropriate fields:
+
+- Testimony document ID.
+- Author/member ID, if available.
+- Author full name.
+- Membership category, if available.
+- Unit, if applicable.
+- Testimony title, if provided.
+- Testimony text.
+- Background color.
+- Text color.
+- Sunday-sharing consent.
+- Server-generated timestamp.
+- Optional fellowship/service reference, if later configured.
+
+Use Firebase server timestamps rather than trusting the client's local clock for official submission time.
+
+The exact date and time should be visible to authorized administrators.
+
+Display dates in a user-friendly format appropriate for Nigeria, such as:
+23 November 2026, 4:18 PM.
+
+Store timestamps in a reliable timezone-independent format and display them in the appropriate local timezone.
+
+The testimony must persist in the database after the user closes the page.
+
+---
+
+8. ADMIN ACCESS — IMPORTANT
+
+The authorized administrator Gmail is:
+
+rcflasuedepe12@gmail.com
+
+This email is the intended initial administrator account.
+
+The admin must use Google authentication to securely sign in.
+
+The administrator should NOT simply type their Gmail into a public registration form and automatically receive admin privileges.
+
+Implement secure Google sign-in using Firebase Authentication.
+
+After Google authentication:
+
+1. Obtain the authenticated user's verified email.
+2. Check the email against the securely configured administrator allowlist or protected admin role.
+3. Only grant access if the user is authorized.
+4. The initial authorized administrator email is rcflasuedepe12@gmail.com.
+5. If the email is not authorized, deny admin access and show a friendly message.
+6. Do not allow unauthorized users to create or assign admin privileges.
+7. Do not rely on frontend-only email checks.
+8. Enforce access control through Firebase security rules and, where necessary, server-side trusted logic or custom claims.
+
+Provide a clearly visible but discreet "Admin" link in the footer or navigation.
+
+Admin route:
+"/admin"
+
+When an unauthorized user visits "/admin":
+
+- Show an admin sign-in screen.
+- Do not expose dashboard information.
+- Do not reveal member data.
+- Do not expose testimonies.
+
+When an authorized admin signs in:
+
+- Open the dashboard.
+
+Use Firebase Authentication with Google as the admin sign-in provider.
+
+Make sure the initial administrator setup is clearly documented. Explain how to securely provision the initial admin role or allowlist in Firebase. Do not assume an email comparison in frontend JavaScript is sufficient.
+
+Do not create a public admin registration page.
+
+Do not make admin privileges available through a form submission.
+
+---
+
+9. ADMIN DASHBOARD
+
+Build a simple, modern, responsive dashboard.
+
+The administrator's main job is to read testimonies and prepare for Sunday fellowship.
+
+Dashboard overview:
+
+Show:
+
+- Total registered members.
+- Total workers.
+- Total executives.
+- Total testimonies.
+- Recent testimony submissions.
+
+Keep the statistics real and connected to Firestore.
+
+Do not use fake statistics.
+
+Dashboard navigation:
+
+1. Overview.
+2. Members.
+3. Workers.
+4. Executives.
+5. Testimonies.
+6. Sunday Testimony List.
+7. Announcements.
+8. Settings, only for genuinely necessary configurations.
+
+Keep the dashboard lightweight.
+
+---
+
+10. ADMIN TESTIMONY MANAGEMENT
+
+The admin should be able to see all submitted testimonies in a private dashboard.
+
+This is the admin's most important feature.
+
+Display testimonies as attractive post cards resembling the member's original colored post.
+
+Each testimony card should show:
+
+- Member name.
+- Testimony content.
+- Testimony title, if provided.
+- Original selected background color.
+- Membership category if available.
+- Unit or portfolio if available.
+- Exact date submitted.
+- Exact submission time.
+- Whether the member consented to sharing during fellowship.
+
+The admin should be able to:
+
+- View all testimonies.
+- Read full testimony.
+- Search by member name.
+- Search testimony content if practical.
+- Filter by date.
+- Filter by membership category.
+- Filter by consent status.
+- Sort by newest or oldest.
+- Copy the testimony.
+- Print a testimony.
+- Select testimonies for a Sunday list.
+- Export or print selected testimonies.
+
+Do not add an unnecessary approval/rejection system.
+
+The admin does not need to approve testimonies before they appear in the admin dashboard.
+
+Submitted testimonies should appear immediately in the admin's private list.
+
+Only testimonies with appropriate sharing consent should be selected for the Sunday presentation list.
+
+The admin should be able to edit a separate presentation copy if necessary, while preserving the original submission.
+
+---
+
+11. SUNDAY TESTIMONY LIST
+
+Create a simple feature that allows the admin to prepare testimonies for Sunday fellowship.
+
+The admin can:
+
+- Select testimonies that have consented to Sunday sharing.
+- Arrange them in order.
+- Set the Sunday/service date.
+- Add an optional service title.
+- Copy the list.
+- Print the list.
+- Export it as a PDF if practical.
+- Save the list for future reference.
+
+A simple printable layout:
+
+RCF — REDEEMED CHRISTIAN FELLOWSHIP
+
+Sunday Testimony List
+Service date
+
+1. Member Name — Testimony Title
+   Testimony content.
+
+2. Member Name — Testimony Title
+   Testimony content.
+
+The printable layout must be clean, readable and suitable for church use.
+
+Do not overcomplicate the workflow.
+
+---
+
+12. MEMBERS, WORKERS AND EXECUTIVES
+
+Provide a simple admin member directory.
+
+The admin should be able to:
+
+- View registered members.
+- Search by name.
+- Search by member ID.
+- Filter by category.
+- Filter by year joined.
+- Filter by unit.
+- View member details.
+- Edit member records when authorized.
+- Export records if practical.
+
+Workers:
+
+- Display unit.
+- Display role/responsibility.
+- Display member details.
+
+Executives:
+
+- Display portfolio.
+- Display executive session/tenure.
+
+Keep the interface fast and straightforward.
+
+Do not expose the member directory publicly.
+
+---
+
+13. ANNOUNCEMENTS
+
+Provide a simple announcements feature.
+
+Admin can:
+
+- Create announcements.
+- Edit announcements.
+- Delete announcements.
+- Set announcement dates.
+- Display current announcements on the public homepage and welcome page.
+
+Keep this feature simple.
+
+---
+
+14. LASTWORD CONNECTION
+
+RCF is connected to LastWord.
+
+Create a configurable LastWord link in the website.
+
+The LastWord section should:
+
+- Display a LastWord button.
+- Allow admin to configure the LastWord URL in settings.
+- Redirect users to the configured LastWord platform.
+- Show a friendly description.
+
+Do not invent the LastWord URL.
+
+If the URL has not been provided, create a configuration field in admin settings and explain where I can enter the actual link.
+
+Do not rebuild LastWord functionality unnecessarily.
+
+---
+
+15. ABOUT RCF
+
+Create a simple About page.
+
+Include configurable sections:
+
+- About the fellowship.
+- Vision.
+- Mission.
+- Fellowship activities.
+- Contact information.
+
+Do not invent church facts, leadership names, contact information or doctrinal statements.
+
+Use editable placeholders where information has not been provided.
+
+---
+
+16. PRIVACY
+
+Create a simple privacy notice.
+
+Explain that RCF collects information for:
+
+- Fellowship membership.
+- Communication where applicable.
+- Fellowship organization.
+- Testimony submission.
+- Sunday testimony preparation, where the member consents.
+
+Explain that member details and testimonies are not automatically public.
+
+The full member directory must not be accessible publicly.
+
+Testimonies must not be publicly displayed without an explicitly designed, consent-based feature.
+
+Do not expose phone numbers, emails, member records or private testimonies.
+
+---
+
+17. FIREBASE — CONNECT THE REAL BACKEND
+
+Use Firebase as the actual backend.
+
+Required Firebase services:
+
+- Firebase Authentication.
+- Cloud Firestore.
+- Firebase Storage only if necessary.
+- Firebase App Check where appropriate and practical.
+
+Do not use Supabase.
+
+Do not use localStorage as the permanent database.
+
+Do not use fake data as the actual backend.
+
+Do not make the website merely look connected to Firebase.
+
+Actually implement Firebase integration.
+
+Create a clean Firebase configuration module.
+
+Use environment variables appropriately.
+
+Provide an ".env.example" file containing placeholders for the required Firebase configuration.
+
+Never expose Firebase Admin SDK credentials, service account credentials, private keys or privileged secrets in frontend code.
+
+Use Firebase client SDK only where appropriate.
+
+If privileged operations require the Admin SDK:
+
+- Use a secure server-side environment.
+- Use environment variables.
+- Never expose credentials in the browser.
+- Never commit secrets to GitHub.
+
+Explain clearly which Firebase settings must be completed in the Firebase console.
+
+---
+
+18. FIRESTORE DATABASE DESIGN
+
+Design a sensible database schema.
+
+Suggested collections:
+
+"members"
+
+Fields:
+
+- memberId.
+- fullName.
+- email, optional.
+- phone, optional.
+- department, optional.
+- faculty, optional.
+- level, optional.
+- category.
+- yearJoined.
+- unit, optional.
+- workerRole, optional.
+- executivePortfolio, optional.
+- executiveSession, optional.
+- createdAt.
+- updatedAt.
+
+"testimonies"
+
+Fields:
+
+- authorMemberId, optional where appropriate.
+- authorName.
+- testimonyTitle, optional.
+- testimonyText.
+- backgroundColor.
+- textColor.
+- consentToSundaySharing.
+- createdAt.
+- optional service/list references.
+
+"admins"
+
+Fields:
+
+- uid.
+- email.
+- role.
+- createdAt.
+
+Admin roles may include:
+
+- superAdmin.
+- admin.
+- testimonyAdmin, if needed in the future.
+
+"announcements"
+
+Fields:
+
+- title.
+- content.
+- active.
+- createdAt.
+- updatedAt.
+
+"settings"
+
+Fields:
+
+- lastWordUrl.
+- fellowshipName.
+- configurable units.
+- configurable executive portfolios.
+- other genuinely necessary settings.
+
+"sundayLists"
+
+Fields:
+
+- serviceDate.
+- title.
+- selectedTestimonyIds.
+- orderedTestimonyIds.
+- presentationCopies where appropriate.
+- createdAt.
+- createdBy.
+
+Adjust this schema where necessary for security, efficiency and correctness.
+
+Do not make the database unnecessarily complex.
+
+---
+
+19. FIREBASE SECURITY RULES — REQUIRED
+
+Generate real, restrictive Firestore security rules.
+
+Do not leave the database open to the public.
+
+Do not use:
+"allow read, write: if true;"
+
+Do not use unrestricted public access.
+
+Rules must protect:
+
+- Members.
+- Testimonies.
+- Admin accounts.
+- Announcements.
+- Settings.
+- Sunday lists.
+
+Ordinary public registration may be allowed through carefully validated public write operations, but it must not allow users to assign themselves admin roles.
+
+Public testimony submission must be restricted to validated fields and safe data.
+
+Testimony submission should not grant public access to the testimony collection.
+
+Only authorized administrators should read the complete testimony collection.
+
+Only authorized administrators should access member records.
+
+Only authorized administrators should modify admin roles, protected settings or Sunday lists.
+
+Admin authorization must not rely solely on the client-provided email.
+
+Use a secure admin authorization strategy such as protected admin documents and/or Firebase custom claims, depending on the architecture.
+
+If Firebase custom claims are used, explain how the initial administrator is provisioned.
+
+Prevent unauthorized users from:
+
+- Reading all members.
+- Reading private testimonies.
+- Creating admin accounts.
+- Editing another user's records improperly.
+- Changing security settings.
+- Granting themselves privileged roles.
+
+Create the actual Firestore rules file in the project.
+
+Do not merely describe the rules.
+
+Also create any necessary Firebase configuration files and deployment instructions.
+
+If the architecture requires Cloud Functions or a secure server for public form validation, implement it or clearly document the exact required setup.
+
+Do not pretend a security feature is implemented if it is only a placeholder.
+
+---
+
+20. INITIAL ADMIN SETUP
+
+The initial administrator email is:
+
+"rcflasuedepe12@gmail.com"
+
+Provide a secure, documented setup process for granting this account the initial admin role.
+
+The setup should be performed securely through Firebase or a trusted server-side provisioning method.
+
+The admin should be able to sign in through Google Authentication.
+
+The system should check the verified authenticated identity and the protected admin role.
+
+Do not create a public endpoint that allows anyone to promote themselves to admin.
+
+Do not grant admin rights based only on the text of an email entered into a registration form.
+
+Provide clear instructions for:
+
+1. Creating the Firebase project.
+2. Enabling Google authentication.
+3. Creating Firestore.
+4. Deploying security rules.
+5. Provisioning the initial admin.
+6. Testing admin authentication.
+7. Adding authorized domains for deployment.
+
+---
+
+21. PERFORMANCE
+
+The website must be fast.
+
+Prioritize:
+
+- Mobile performance.
+- Lightweight components.
+- Optimized images.
+- Lazy loading where useful.
+- Efficient Firestore queries.
+- Pagination or sensible limits for testimony lists.
+- No unnecessarily large packages.
+- No excessive animation.
+- No huge video backgrounds.
+- No unnecessary API calls.
+
+The website should load quickly on Nigerian mobile networks.
+
+The testimony composer should be simple and responsive.
+
+---
+
+22. DESIGN QUALITY
+
+The design should be polished and modern.
+
+Use:
+
+- Responsive layouts.
+- Clean typography.
+- Proper spacing.
+- Professional cards.
+- Attractive color selection.
+- Accessible buttons.
+- Smooth but subtle transitions.
+- Loading skeletons.
+- Empty states.
+- Error states.
+- Success messages.
+- Responsive navigation.
+- Mobile-friendly forms.
+- Accessible contrast.
+- Keyboard-friendly interactions where appropriate.
+
+The testimony cards should look attractive, especially when users choose colored backgrounds.
+
+The admin dashboard should feel like a professional lightweight web application.
+
+Do not make every section look like a generic template.
+
+Do not add features that distract from the core purpose.
+
+---
+
+23. GITHUB
+
+Prepare the project to connect to GitHub.
+
+Provide:
+
+- Clean project structure.
+- README.
+- ".gitignore".
+- ".env.example".
+- Firebase configuration files.
+- Firestore security rules.
+- Firebase deployment instructions.
+
+Do not commit secrets.
+
+Do not include service account private keys.
+
+The project must be suitable for a GitHub repository.
+
+---
+
+24. VERCEL DEPLOYMENT
+
+Prepare the application for Vercel deployment.
+
+The website must be deployable from GitHub through Vercel.
+
+Provide clear instructions:
+
+1. Push the project to GitHub.
+2. Import the repository into Vercel.
+3. Add required environment variables.
+4. Deploy.
+5. Configure Firebase authorized domains.
+6. Test registration.
+7. Test testimony submission.
+8. Test Google admin sign-in.
+9. Test admin dashboard access.
+10. Test Firestore security rules.
+
+The initial deployment should work with the Vercel-provided domain.
+
+Do not require a purchased custom domain.
+
+The custom domain can be added later.
+
+Ensure routing works correctly on Vercel.
+
+---
+
+25. TESTING
+
+Test the main workflows.
+
+Registration:
+
+- Member can register.
+- Required fields are validated.
+- Worker fields appear correctly.
+- Executive fields appear correctly.
+- Registration saves to Firestore.
+- Member ID is generated.
+- Success screen works.
+
+Testimony:
+
+- Member can type a testimony.
+- Background color changes.
+- Preview updates.
+- Testimony submits.
+- Testimony is saved.
+- Submission timestamp is recorded.
+- Consent is recorded.
+- Success message works.
+- Duplicate submission is handled.
+
+Admin:
+
+- Authorized admin can sign in.
+- Authorized admin can access dashboard.
+- Unauthorized user cannot access dashboard.
+- Admin can see real testimonies.
+- Admin can see submission timestamps.
+- Admin can search.
+- Admin can arrange Sunday testimonies.
+- Admin can print/export where implemented.
+
+Security:
+
+- Ordinary users cannot read the full member collection.
+- Ordinary users cannot read private testimony records.
+- Ordinary users cannot grant themselves admin rights.
+- Protected admin actions are secured.
+- Firestore rules are tested.
+
+Do not claim tests passed unless they were actually executed.
+
+If some tests cannot be executed in Google AI Studio, clearly list the tests that remain for me to run.
+
+---
+
+26. BUILDING INSTRUCTIONS FOR THE AI
+
+Build the actual application, not just a plan.
+
+Start by inspecting the existing project files and assets.
+
+If the project already contains a logo, use it.
+
+Do not overwrite existing useful work without inspecting it first.
+
+Implement the project in a structured way.
+
+Use a modern, maintainable frontend framework compatible with Vercel.
+
+If Next.js is appropriate, use Next.js with TypeScript.
+
+Create reusable components.
+
+Implement Firebase integration.
+
+Create the Firestore schema and security rules.
+
+Implement authentication.
+
+Implement registration.
+
+Implement the testimony composer.
+
+Implement the admin dashboard.
+
+Implement Sunday testimony management.
+
+Implement LastWord configuration.
+
+Implement responsive design.
+
+Implement the privacy notice.
+
+Implement deployment documentation.
+
+Do not leave buttons nonfunctional.
+
+Do not replace real functionality with fake mock data.
+
+Do not create a dashboard that only looks functional.
+
+Do not leave Firebase integration as an unimplemented TODO.
+
+If credentials, Firebase project IDs, URLs or configuration values are unavailable, build the integration properly and provide clearly documented placeholders. Do not fabricate credentials.
+
+When the build is complete:
+
+- Summarize what was built.
+- List files created.
+- List Firebase setup steps.
+- List environment variables.
+- Explain how to provision the initial admin.
+- Explain how to deploy to GitHub and Vercel.
+- List any remaining tasks that require my manual action.
+- Report honestly what was tested.
+
+The final result should be a real, working, lightweight RCF website.
+
+Priority:
+
+1. Fast.
+2. Simple.
+3. Beautiful.
+4. Mobile-first.
+5. Secure.
+6. Firebase-connected.
+7. Easy to deploy.
+8. Easy for members.
+9. Easy for admin.
+
+Build it now, carefully and systematically.

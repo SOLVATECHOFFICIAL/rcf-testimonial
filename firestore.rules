@@ -1,0 +1,298 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Reusable Hardened Helpers ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedSuperAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'rcflasuedepe12@gmail.com';
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        isBootstrappedSuperAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isSuperAdmin() {
+      return isVerifiedUser() && (
+        isBootstrappedSuperAdmin() ||
+        (
+          exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'superAdmin'
+        )
+      );
+    }
+
+    function isOptionalString(data, key, maxLen) {
+      return !(key in data) || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    // --- Entity Validation Blueprints ---
+    function isValidMemberData(data) {
+      return data.keys().hasAll(['memberId', 'fullName', 'category', 'yearJoined', 'submissionNonce', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'memberId', 'fullName', 'category', 'yearJoined',
+          'email', 'phone', 'department', 'faculty', 'level',
+          'unit', 'workerRole', 'executivePortfolio', 'executiveSession',
+          'submissionNonce', 'createdAt', 'updatedAt'
+        ])
+        && data.memberId is string && data.memberId.size() >= 8 && data.memberId.size() <= 32
+        && data.memberId.matches('^RCF-[0-9]{4}-[A-Z0-9]{4,10}$')
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 120
+        && data.category in ['Member', 'Worker', 'Executive']
+        && data.yearJoined is int && data.yearJoined >= 1980 && data.yearJoined <= 2100
+        && data.submissionNonce is string && data.submissionNonce.size() >= 8 && data.submissionNonce.size() <= 64
+        && data.submissionNonce.matches('^[a-zA-Z0-9_\\-]+$')
+        && isOptionalString(data, 'email', 160)
+        && isOptionalString(data, 'phone', 32)
+        && isOptionalString(data, 'department', 120)
+        && isOptionalString(data, 'faculty', 120)
+        && isOptionalString(data, 'level', 32)
+        && isOptionalString(data, 'unit', 80)
+        && isOptionalString(data, 'workerRole', 120)
+        && isOptionalString(data, 'executivePortfolio', 80)
+        && isOptionalString(data, 'executiveSession', 40)
+        && (data.category != 'Worker' || ('unit' in data && data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 80))
+        && (data.category != 'Executive' || (
+          'executivePortfolio' in data && data.executivePortfolio is string && data.executivePortfolio.size() >= 1 && data.executivePortfolio.size() <= 80 &&
+          'executiveSession' in data && data.executiveSession is string && data.executiveSession.size() >= 2 && data.executiveSession.size() <= 40
+        ));
+    }
+
+    function isValidTestimonyCreateData(data) {
+      return data.keys().hasAll(['authorName', 'testimonyText', 'backgroundColor', 'textColor', 'consentToSundaySharing', 'submissionNonce', 'createdAt'])
+        && data.keys().hasOnly([
+          'authorMemberId', 'authorName', 'membershipCategory', 'unit',
+          'testimonyTitle', 'testimonyText', 'backgroundColor', 'textColor',
+          'consentToSundaySharing', 'submissionNonce', 'createdAt'
+        ])
+        && isOptionalString(data, 'authorMemberId', 32)
+        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 120
+        && isOptionalString(data, 'membershipCategory', 32)
+        && isOptionalString(data, 'unit', 80)
+        && isOptionalString(data, 'testimonyTitle', 140)
+        && data.testimonyText is string && data.testimonyText.size() >= 5 && data.testimonyText.size() <= 3000
+        && data.backgroundColor is string && data.backgroundColor.size() == 7 && data.backgroundColor.matches('^#[0-9a-fA-F]{6}$')
+        && data.textColor is string && data.textColor.size() == 7 && data.textColor.matches('^#[0-9a-fA-F]{6}$')
+        && data.consentToSundaySharing is bool
+        && data.submissionNonce is string && data.submissionNonce.size() >= 8 && data.submissionNonce.size() <= 64
+        && data.submissionNonce.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidTestimonyUpdateData(data) {
+      return data.keys().hasAll(['authorName', 'testimonyText', 'backgroundColor', 'textColor', 'consentToSundaySharing', 'submissionNonce', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'authorMemberId', 'authorName', 'membershipCategory', 'unit',
+          'testimonyTitle', 'testimonyText', 'backgroundColor', 'textColor',
+          'consentToSundaySharing', 'presentationCopy', 'submissionNonce', 'createdAt', 'updatedAt'
+        ])
+        && isOptionalString(data, 'presentationCopy', 3000);
+    }
+
+    function isValidAdminData(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'role', 'displayName', 'createdAt'])
+        && data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 160
+        && data.role in ['superAdmin', 'admin', 'testimonyAdmin']
+        && isOptionalString(data, 'displayName', 120);
+    }
+
+    function isValidAnnouncementData(data) {
+      return data.keys().hasAll(['title', 'content', 'active', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'content', 'eventDate', 'active', 'createdAt', 'updatedAt'])
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 160
+        && data.content is string && data.content.size() >= 2 && data.content.size() <= 2000
+        && isOptionalString(data, 'eventDate', 64)
+        && data.active is bool;
+    }
+
+    function isValidSettingsData(data) {
+      return data.keys().hasAll(['fellowshipName', 'units', 'executivePortfolios', 'updatedAt'])
+        && data.keys().hasOnly([
+          'fellowshipName', 'lastWordUrl', 'lastWordDescription',
+          'units', 'executivePortfolios', 'aboutText', 'visionText',
+          'missionText', 'activities', 'contactEmail', 'contactPhone',
+          'contactAddress', 'updatedAt'
+        ])
+        && data.fellowshipName is string && data.fellowshipName.size() >= 2 && data.fellowshipName.size() <= 160
+        && isOptionalString(data, 'lastWordUrl', 500)
+        && isOptionalString(data, 'lastWordDescription', 600)
+        && data.units is list && data.units.size() >= 1 && data.units.size() <= 40 && data.units[0] is string
+        && data.executivePortfolios is list && data.executivePortfolios.size() >= 1 && data.executivePortfolios.size() <= 40 && data.executivePortfolios[0] is string
+        && isOptionalString(data, 'aboutText', 2500)
+        && isOptionalString(data, 'visionText', 1200)
+        && isOptionalString(data, 'missionText', 1200)
+        && (!('activities' in data) || (data.activities is list && data.activities.size() <= 20))
+        && isOptionalString(data, 'contactEmail', 160)
+        && isOptionalString(data, 'contactPhone', 40)
+        && isOptionalString(data, 'contactAddress', 240);
+    }
+
+    function isValidSundayListData(data) {
+      return data.keys().hasAll(['serviceDate', 'orderedTestimonyIds', 'createdBy', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['serviceDate', 'title', 'orderedTestimonyIds', 'createdBy', 'createdAt', 'updatedAt'])
+        && data.serviceDate is string && data.serviceDate.size() >= 4 && data.serviceDate.size() <= 40
+        && isOptionalString(data, 'title', 160)
+        && data.orderedTestimonyIds is list && data.orderedTestimonyIds.size() <= 100
+        && (data.orderedTestimonyIds.size() == 0 || data.orderedTestimonyIds[0] is string)
+        && data.createdBy is string && data.createdBy.size() >= 1 && data.createdBy.size() <= 128;
+    }
+
+    // --- Collection Rules ---
+
+    // Startup connection validation check (read-only on test/connection)
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+      allow list, write: if false;
+    }
+
+    // Members: PII isolated to admins; public registration create validated strictly
+    match /members/{memberDocId} {
+      allow get: if isValidId(memberDocId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(memberDocId)
+        && isValidMemberData(incoming())
+        && incoming().memberId == memberDocId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(memberDocId)
+        && isValidMemberData(incoming())
+        && incoming().memberId == existing().memberId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'fullName', 'category', 'yearJoined', 'email', 'phone',
+          'department', 'faculty', 'level', 'unit', 'workerRole',
+          'executivePortfolio', 'executiveSession', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(memberDocId);
+    }
+
+    // Testimonies: Private to admins; public submission create validated strictly
+    match /testimonies/{testimonyId} {
+      allow get: if isValidId(testimonyId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(testimonyId)
+        && isValidTestimonyCreateData(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(testimonyId)
+        && isValidTestimonyUpdateData(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().testimonyText == existing().testimonyText
+        && incoming().authorName == existing().authorName
+        && incoming().consentToSundaySharing == existing().consentToSundaySharing
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['presentationCopy', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(testimonyId);
+    }
+
+    // Admins: Protected role directory
+    match /admins/{adminUid} {
+      allow get: if isValidId(adminUid) && isVerifiedUser() && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(adminUid)
+        && isValidAdminData(incoming())
+        && incoming().uid == adminUid
+        && incoming().createdAt == request.time
+        && (
+          (isBootstrappedSuperAdmin() && request.auth.uid == adminUid && incoming().role == 'superAdmin' && incoming().email == 'rcflasuedepe12@gmail.com') ||
+          isSuperAdmin()
+        );
+      allow update: if isSuperAdmin()
+        && isValidId(adminUid)
+        && isValidAdminData(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName']);
+      allow delete: if isSuperAdmin() && isValidId(adminUid) && adminUid != request.auth.uid;
+    }
+
+    // Announcements: Active announcements readable publicly; admin manages all
+    match /announcements/{announcementId} {
+      allow get: if isValidId(announcementId) && (existing().active == true || isAdmin());
+      allow list: if resource.data.active == true || isAdmin();
+      allow create: if isAdmin()
+        && isValidId(announcementId)
+        && isValidAnnouncementData(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(announcementId)
+        && isValidAnnouncementData(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'eventDate', 'active', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(announcementId);
+    }
+
+    // Settings: Public general fellowship config readable publicly; only admins write
+    match /settings/{settingId} {
+      allow get: if isValidId(settingId) && (settingId == 'general' || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(settingId)
+        && isValidSettingsData(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(settingId)
+        && isValidSettingsData(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'fellowshipName', 'lastWordUrl', 'lastWordDescription',
+          'units', 'executivePortfolios', 'aboutText', 'visionText',
+          'missionText', 'activities', 'contactEmail', 'contactPhone',
+          'contactAddress', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // Sunday Testimony Lists: Admin-only
+    match /sundayLists/{listId} {
+      allow get: if isValidId(listId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && isValidId(listId)
+        && isValidSundayListData(incoming())
+        && incoming().createdBy == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(listId)
+        && isValidSundayListData(incoming())
+        && incoming().createdBy == existing().createdBy
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['serviceDate', 'title', 'orderedTestimonyIds', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(listId);
+    }
+  }
+}

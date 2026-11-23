@@ -1,0 +1,361 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Registered fellowship member, worker, or executive.",
+      "type": "object",
+      "properties": {
+        "memberId": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 32,
+          "pattern": "^RCF-[0-9]{4}-[A-Z0-9]{4,10}$",
+          "description": "Unique generated fellowship member ID (e.g., RCF-2026-482910)."
+        },
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Full name of the member."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Member", "Worker", "Executive"],
+          "description": "Fellowship membership category."
+        },
+        "yearJoined": {
+          "type": "integer",
+          "description": "Year the member joined RCF."
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 160,
+          "description": "Optional Gmail or email address."
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Optional phone number."
+        },
+        "department": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional academic department."
+        },
+        "faculty": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional faculty or school."
+        },
+        "level": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Optional academic level."
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Fellowship unit (required for Workers, optional for Executives)."
+        },
+        "workerRole": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional worker role or responsibility."
+        },
+        "executivePortfolio": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Executive portfolio (required for Executives)."
+        },
+        "executiveSession": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Executive tenure/session (required for Executives)."
+        },
+        "submissionNonce": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Client-generated idempotency key to prevent duplicate registration submissions."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": ["memberId", "fullName", "category", "yearJoined", "submissionNonce", "createdAt", "updatedAt"]
+    },
+    "Testimony": {
+      "title": "Testimony",
+      "description": "Member-submitted testimony card for fellowship leadership review and Sunday fellowship preparation.",
+      "type": "object",
+      "properties": {
+        "authorMemberId": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Optional RCF member ID if available."
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Full name of the person sharing the testimony."
+        },
+        "membershipCategory": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Optional membership category (Member, Worker, Executive)."
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Optional fellowship unit or portfolio."
+        },
+        "testimonyTitle": {
+          "type": "string",
+          "maxLength": 140,
+          "description": "Optional short testimony title."
+        },
+        "testimonyText": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 3000,
+          "description": "Testimony body text."
+        },
+        "backgroundColor": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Hex background color selected by the member."
+        },
+        "textColor": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Accessible foreground text hex color paired with backgroundColor."
+        },
+        "consentToSundaySharing": {
+          "type": "boolean",
+          "description": "Whether the member explicitly consented to sharing during Sunday fellowship."
+        },
+        "presentationCopy": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Optional admin-edited copy for Sunday presentation while preserving testimonyText."
+        },
+        "submissionNonce": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Idempotency nonce to prevent accidental duplicate submissions."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of testimony submission."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last admin presentation update."
+        }
+      },
+      "required": ["authorName", "testimonyText", "backgroundColor", "textColor", "consentToSundaySharing", "submissionNonce", "createdAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized fellowship administrator record.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 160
+        },
+        "role": {
+          "type": "string",
+          "enum": ["superAdmin", "admin", "testimonyAdmin"]
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Public fellowship announcement displayed on homepage and welcome dashboard.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "content": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2000
+        },
+        "eventDate": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "content", "active", "createdAt", "updatedAt"]
+    },
+    "FellowshipSettings": {
+      "title": "FellowshipSettings",
+      "description": "Configurable public fellowship settings including LastWord URL, units, executive portfolios, About sections, and contact information.",
+      "type": "object",
+      "properties": {
+        "fellowshipName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "lastWordUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "lastWordDescription": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "units": {
+          "type": "array",
+          "description": "Configurable list of fellowship worker units."
+        },
+        "executivePortfolios": {
+          "type": "array",
+          "description": "Configurable list of executive portfolios."
+        },
+        "aboutText": {
+          "type": "string",
+          "maxLength": 2500
+        },
+        "visionText": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "missionText": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "activities": {
+          "type": "array",
+          "description": "Configured fellowship weekly or upcoming activities."
+        },
+        "contactEmail": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "contactPhone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "contactAddress": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["fellowshipName", "units", "executivePortfolios", "updatedAt"]
+    },
+    "SundayList": {
+      "title": "SundayList",
+      "description": "Curated and ordered list of consented testimonies prepared for Sunday fellowship.",
+      "type": "object",
+      "properties": {
+        "serviceDate": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 40
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "orderedTestimonyIds": {
+          "type": "array",
+          "description": "Ordered testimony document IDs."
+        },
+        "createdBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["serviceDate", "orderedTestimonyIds", "createdBy", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/members/{memberDocId}": {
+      "schema": { "$ref": "#/entities/Member" },
+      "description": "Registered fellowship members (admin-read only, validated public create)."
+    },
+    "/testimonies/{testimonyId}": {
+      "schema": { "$ref": "#/entities/Testimony" },
+      "description": "Submitted testimonies (admin-read only, validated public create)."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Authorized admin accounts."
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/Announcement" },
+      "description": "Fellowship announcements (public read where active == true, admin write)."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/FellowshipSettings" },
+      "description": "Public fellowship configuration document at /settings/general (public get, admin write)."
+    },
+    "/sundayLists/{listId}": {
+      "schema": { "$ref": "#/entities/SundayList" },
+      "description": "Sunday fellowship testimony presentation lists (admin-only read and write)."
+    }
+  }
+}
